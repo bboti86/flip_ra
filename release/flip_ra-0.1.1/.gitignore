@@ -1,0 +1,27 @@
+# Credentials and Local Settings (NEVER COMMIT THESE)
+settings.json
+
+# API and Log Caches
+api_cache.json
+device_runtime.log
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# IDEs and OS Files
+.vscode/
+.idea/
+.DS_Store
+
+# Temporary Development Folders
+spruceOS_tmp/
+archive_v1/
+deploy/

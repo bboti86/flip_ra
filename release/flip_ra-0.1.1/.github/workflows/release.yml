@@ -1,0 +1,47 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Release Directory
+        run: |
+          # Create a clean folder for the release
+          mkdir -p RA_Manager
+          
+          # Only copy application-critical directories
+          cp -r core ui RA_Manager/ 2>/dev/null || true
+          
+          # Optionally copy libs/assets only if they exist
+          [ -d libs ] && cp -r libs RA_Manager/ || true
+          [ -d assets ] && cp -r assets RA_Manager/ || true
+          
+          # Copy only the specific top-level files required for SpruceOS
+          cp main.py launch.sh config.json icon.png RA_Manager/ 2>/dev/null || true
+          
+          # Create empty settings to avoid crash, but keep it secure (no personal tokens)
+          echo "{}" > RA_Manager/settings.json
+          
+          # Remove any leftover caches
+          find RA_Manager -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
+
+      - name: Create Zip Archive
+        run: zip -r RA_Manager.zip RA_Manager/
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./RA_Manager.zip
+          asset_name: RA_Manager.zip
+          asset_content_type: application/zip

@@ -1,0 +1,7 @@
+{
+    "label": "RA Manager",
+    "icon": "icon.png",
+    "launch": "launch.sh",
+    "description": "RetroAchievements Library",
+    "hideInSimpleMode": false
+}
