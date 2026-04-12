@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Release Directory
+        run: |
+          mkdir -p RA_Manager
+          # Copy application directories (ignore errors if assets/libs don't exist yet)
+          cp -r core ui assets libs RA_Manager/ 2>/dev/null || true
+          
+          # Copy top-level required files
+          cp main.py launch.sh config.json icon.png RA_Manager/ 2>/dev/null || true
+          
+          # Notice: We explicitly DO NOT copy settings.json or api_cache.json
+          # into the public release zip to ensure security, but we can make an empty settings.json 
+          # so the app doesn't crash on boot for a fresh user
+          echo "{}" > RA_Manager/settings.json
+          
+          # Clean up any accidental python caches
+          find RA_Manager -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
+
+      - name: Create Zip Archive
+        run: zip -r RA_Manager.zip RA_Manager/
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./RA_Manager.zip
+          asset_name: RA_Manager.zip
+          asset_content_type: application/zip
