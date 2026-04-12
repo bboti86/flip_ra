@@ -14,19 +14,23 @@ jobs:
 
       - name: Prepare Release Directory
         run: |
+          # Create a clean folder for the release
           mkdir -p RA_Manager
-          # Copy application directories (ignore errors if assets/libs don't exist yet)
-          cp -r core ui assets libs RA_Manager/ 2>/dev/null || true
           
-          # Copy top-level required files
+          # Only copy application-critical directories
+          cp -r core ui RA_Manager/ 2>/dev/null || true
+          
+          # Optionally copy libs/assets only if they exist
+          [ -d libs ] && cp -r libs RA_Manager/ || true
+          [ -d assets ] && cp -r assets RA_Manager/ || true
+          
+          # Copy only the specific top-level files required for SpruceOS
           cp main.py launch.sh config.json icon.png RA_Manager/ 2>/dev/null || true
           
-          # Notice: We explicitly DO NOT copy settings.json or api_cache.json
-          # into the public release zip to ensure security, but we can make an empty settings.json 
-          # so the app doesn't crash on boot for a fresh user
+          # Create empty settings to avoid crash, but keep it secure (no personal tokens)
           echo "{}" > RA_Manager/settings.json
           
-          # Clean up any accidental python caches
+          # Remove any leftover caches
           find RA_Manager -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
 
       - name: Create Zip Archive
