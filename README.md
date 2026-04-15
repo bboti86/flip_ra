@@ -8,14 +8,13 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
 
 ---
 
-## ✨ Features
-
-*   **🔒 Secure Credential Management**: Safely enter your Username, Password, and Web API Key. Your sensitive data is masked during input and saved securely to a local `settings.json`.
-*   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files at once (e.g., `retroarch-Flip.cfg`, `retroarch-A30.cfg`, etc.).
-*   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
+*   **📈 HowLongToBeat (HLTB) "Library Insight"**: Integrated playtime data provides deep context for your library:
+    *   **Time to Beat**: View Main Story, Main+Extra, and Completionist estimates for any favorite game.
+    *   **Backlog Health**: A dashboard summary showing the total remaining hours needed to clear your favorites list.
+    *   **Insight Sorting**: Quickly find your next game by sorting your favorites from "Shortest to Beat" to "Longest".
 *   **📊 Gamified Profile Stats**: Check your progress without launching a browser:
-    *   **Dashboard**: View all your unlocked achievements from the last 7 days.
-    *   **Games & Achievements**: Integration with SpruceOS favorites (`pyui-favorites.json`) to browse achievements and track completion progress for your top games. Includes background badge caching and a nostalgic ASCII progress bar.
+    *   **Dashboard**: View recent achievements and your total backlog playtime estimate.
+    *   **Games & Achievements**: Browse progress and track HLTB completion times for your favorite games. Includes background badge caching and a nostalgic ASCII progress bar.
     *   **Progression Gauge**: A visual bar tracking the points you need to hit your next global milestone.
     *   **Purity Meter**: A Gold/Silver ratio bar showing your Hardcore vs. Softcore points split.
     *   **Crown Jewel**: Automatically highlights your single rarest recent achievement based on `RetroRatio` rarity.
@@ -36,8 +35,9 @@ The app uses standard SDL GameController mappings natively compatible with the M
 | **Cycle Tabs** | `L1` / `R1` | Seamlessly cycle between Auth ↔ Settings ↔ Dashboard ↔ Stats. |
 | **Navigate** | `D-Pad` | Move between input fields or scroll through your lists. |
 | **Select / Toggle** | `A` Button | Open the on-screen keyboard for text fields, or toggle YES/NO boolean preferences in Settings. |
-| **Go Back** | `B` Button | Cancel keyboard input. |
-| **Save / Sync** | `Start` | Trigger the API verification and write settings to RetroArch `.cfg` files. |
+| **Sort Insight** | `Select` | (Games Tab) Toggle between Default order and "Shortest to Beat" (HLTB). |
+| **Go Back** | `B` Button | Cancel keyboard input or return to the previous screen. |
+| **Save / Sync** | `Start` | Save preferences and push configurations to RetroArch and PPSSPP. |
 
 ---
 
@@ -86,6 +86,7 @@ The gamification layer. Generates custom tracking bars utilizing mathematical ca
 For developer insights and brainstorming data around the API structures and SpruceOS retroarch configurations used during the creation of this app, check out the [docs folder](./docs):
 - [API Data Endpoints & Stats Ideas](./docs/API_possibilities.md)
 - [SpruceOS RetroArch Config Breakdown](./docs/config_description.md)
+- [HowLongToBeat Integration Details](./docs/hltb_integration.md)
 
 ---
 

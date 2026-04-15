@@ -6,7 +6,7 @@ import threading
 import difflib
 import time
 from .components import render_text, draw_image
-from core import input, retroachievements
+from core import input, retroachievements, hltb
 
 # Mapping SpruceOS system names to RA Console IDs
 SYSTEM_MAP = {
@@ -48,7 +48,7 @@ class GamesScreen:
         self.state = 0
         self.favorites = []
         self.selected_game_idx = 0
-        self.scroll_y = 0
+        self.scroll_index = 0
         
         # State Data
         self.target_game = None
@@ -62,6 +62,8 @@ class GamesScreen:
         self.error_msg = None
         self.loading_msg = ""
         
+        self.hltb_data = None
+        self.sort_mode = "DEFAULT" # DEFAULT or SHORTEST
         self.load_favorites()
 
     def load_config(self):
@@ -78,10 +80,27 @@ class GamesScreen:
                 with open(self.favorites_path, 'r') as f:
                     self.favorites = json.load(f)
                 print(f"[INFO] Loaded {len(self.favorites)} favorite games")
+                self.apply_sorting()
             else:
                 self.error_msg = "No favorites found on device."
         except Exception as e:
             self.error_msg = f"Error loading favorites: {e}"
+
+    def apply_sorting(self):
+        if self.sort_mode == "SHORTEST":
+            print("[INFO] Sorting favorites by HLTB Main Story time...")
+            # We need to pre-fetch or use cached times if available
+            def get_sort_time(g):
+                # Try cache first
+                data = hltb.get_game_times(g["display_name"])
+                return data["main"] if data else 999
+            self.favorites.sort(key=get_sort_time)
+        else:
+            # Re-load from file for default order
+            try:
+                with open(self.favorites_path, 'r') as f:
+                    self.favorites = json.load(f)
+            except: pass
 
     def start_matching(self):
         self.state = 1
@@ -135,10 +154,21 @@ class GamesScreen:
             return
             
         self.game_data = data
+        self.hltb_data = None
         raw_achs = data.get("Achievements", {})
         # Dict to sorted list
         self.achievements = sorted(raw_achs.values(), key=lambda x: x.get("DisplayOrder", 0))
+        self.scroll_index = 0
         print(f"[INFO] Loaded {len(self.achievements)} achievements for game ID {self.ra_game_id}")
+        
+        # Start background HLTB fetch
+        def _hltb_task():
+            title = self.game_data.get("Title")
+            year = self.game_data.get("Released")
+            self.hltb_data = hltb.get_game_times(title, year)
+            if self.hltb_data:
+                print(f"[HLTB] Found data: {self.hltb_data}")
+        threading.Thread(target=_hltb_task, daemon=True).start()
         
         # Build download queue
         self.download_queue = []
@@ -200,15 +230,21 @@ class GamesScreen:
                     self.start_matching()
             elif action == input.CANCEL:
                 return "SWITCH_TO_AUTH"
+            elif action == input.SELECT:
+                self.sort_mode = "SHORTEST" if self.sort_mode == "DEFAULT" else "DEFAULT"
+                self.apply_sorting()
+                self.selected_game_idx = 0
                 
         elif self.state == 3: # Achievement Viewer
             if action == input.UP:
-                self.scroll_y = max(0, self.scroll_y - 40)
+                self.scroll_index = max(0, self.scroll_index - 1)
             elif action == input.DOWN:
-                self.scroll_y += 40
+                if self.achievements:
+                    self.scroll_index = min(len(self.achievements) - 5, self.scroll_index + 1)
+                    if self.scroll_index < 0: self.scroll_index = 0
             elif action == input.CANCEL:
                 self.state = 0
-                self.scroll_y = 0
+                self.scroll_index = 0
         
         return None
 
@@ -253,7 +289,9 @@ class GamesScreen:
                 render_text(self.renderer, self.font, prefix + game["display_name"], 50, y, color)
                 render_text(self.renderer, self.font, f"[{game.get('game_system_name', '??')}]", 500, y, (150, 150, 150))
 
-            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Achievements", 320, 450, (150, 150, 150), center=True)
+            sort_hint = "Default" if self.sort_mode == "DEFAULT" else "Shortest (HLTB)"
+            render_text(self.renderer, self.font, f"Sort: {sort_hint} (SELECT to toggle)", 320, 430, (150, 150, 255), center=True)
+            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Achievements", 320, 455, (150, 150, 150), center=True)
 
         elif self.state == 1: # Loading
             render_text(self.renderer, self.font, "Establishing Link...", 320, 220, (200, 200, 100), center=True)
@@ -277,11 +315,19 @@ class GamesScreen:
             render_text(self.renderer, self.font, f"Completion: {unlocked}/{total} ({int(pct*100)}%)", 320, 35, (255, 255, 255), center=True)
             self._draw_progress_bar(120, 60, 400, 10, pct, (0, 255, 0))
             
-            # List achievements
-            y_base = 100 - self.scroll_y
-            for i, ach in enumerate(self.achievements):
-                y = y_base + (i * 70)
-                if y < 80 or y > 440: continue
+            # HLTB Times
+            if self.hltb_data:
+                h = self.hltb_data
+                hltb_str = f"Story: {h['main']}h | Extras: {h['plus']}h | 100%: {h['100']}h"
+                render_text(self.renderer, self.font, hltb_str, 320, 75, (200, 200, 255), center=True)
+            
+            # List achievements (show exactly 5)
+            for i in range(5):
+                idx = self.scroll_index + i
+                if idx >= len(self.achievements): break
+                
+                ach = self.achievements[idx]
+                y = 100 + (i * 70)
                 
                 is_unlocked = "DateEarned" in ach or "DateEarnedHardcore" in ach
                 badge_name = ach.get("BadgeName")
@@ -293,12 +339,12 @@ class GamesScreen:
                 
                 # Draw Text
                 title_color = (255, 255, 255) if is_unlocked else (150, 150, 150)
-                desc_color = (200, 200, 200) if is_unlocked else (100, 100, 100)
+                desc_color = (180, 180, 180) if is_unlocked else (100, 100, 100)
                 
                 render_text(self.renderer, self.font, ach.get("Title", "???"), 100, y, title_color)
                 render_text(self.renderer, self.font, ach.get("Description", ""), 100, y + 25, desc_color)
                 
                 points = ach.get("Points", 0)
-                render_text(self.renderer, self.font, f"{points} pts", 550, y, (255, 215, 0))
+                render_text(self.renderer, self.font, f"{points} pts", 540, y, (150, 255, 150))
 
             render_text(self.renderer, self.font, "D-Pad: Scroll | B: Back to Games", 320, 450, (150, 150, 150), center=True)

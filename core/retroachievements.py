@@ -114,9 +114,19 @@ def get_user_stats(username, password):
             summary = _get_cached_data("summary")
             
     if summary:
+        print(f"[DEBUG] RA Summary Keys: {list(summary.keys())}")
         stats["Rank"] = summary.get("Rank", "Unknown")
-        stats["TotalPoints"] = int(summary.get("TotalPoints", 0))
-        stats["TotalTruePoints"] = int(summary.get("TotalTruePoints", 0))
+        
+        # Try different possible keys for Hardcore Points
+        stats["HCPoints"] = int(summary.get("Points") or summary.get("TotalHardcorePoints") or summary.get("TotalPoints") or 0)
+        
+        # Try different possible keys for Softcore Points
+        stats["SCPoints"] = int(summary.get("SoftcorePoints") or summary.get("TotalSoftcorePoints") or 0)
+        
+        # Try different possible keys for True Points
+        stats["TotalTruePoints"] = int(summary.get("TotalTruePoints") or summary.get("TruePoints") or 0)
+
+        print(f"[DEBUG] Resolved Stats: HC={stats['HCPoints']}, SC={stats['SCPoints']}, True={stats['TotalTruePoints']}")
         
     # 2. Get Recent for Rarest
     recent = get_recent_achievements(username, password)
@@ -182,6 +192,100 @@ def update_single_config(cfg_path, username, password, prefs):
         return True, "Updated"
     except Exception as e:
         return False, str(e)
+
+def update_ppsspp_config(username, password, prefs):
+    paths = [
+        # Active SpruceOS configurations (Prioritized)
+        '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM/ppsspp-Flip.ini',
+        '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM/ppsspp-A30.ini',
+        '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM/ppsspp-Brick.ini',
+        '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM/ppsspp.ini',
+        # Default SpruceOS setup configurations
+        '/mnt/sdcard/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM/ppsspp-Flip.ini',
+        '/mnt/sdcard/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM/ppsspp-A30.ini',
+        '/mnt/sdcard/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM/ppsspp-Brick.ini',
+        '/mnt/sdcard/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM/ppsspp.ini'
+    ]
+    
+    updated_count = 0
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+            
+        try:
+            with open(path, 'r') as f:
+                lines = f.readlines()
+
+            new_lines = []
+            in_ra_section = False
+            discarding_defunct = False
+            handled_keys = set()
+            overrides = {
+                'AchievementsEnable': 'True',
+                'AchievementsUserName': username,
+                'AchievementsToken': password,
+                'AchievementsChallengeMode': 'True' if prefs.get('cheevos_hardcore_mode_enable', True) else 'False'
+            }
+
+            for line in lines:
+                line_strip = line.strip()
+                if line_strip.startswith('[') and line_strip.endswith(']'):
+                    if line_strip == '[Achievements]':
+                        in_ra_section = True
+                        discarding_defunct = False
+                    elif line_strip == '[RetroAchievements]':
+                        in_ra_section = False
+                        discarding_defunct = True
+                        continue # Skip this header
+                    else:
+                        if in_ra_section:
+                            # Add missing keys before leaving section
+                            for k, v in overrides.items():
+                                if k not in handled_keys:
+                                    new_lines.append(f"{k} = {v}\n")
+                                    handled_keys.add(k)
+                        in_ra_section = False
+                        discarding_defunct = False
+                    new_lines.append(line)
+                    continue
+
+                if discarding_defunct:
+                    continue # Discard everything until next section
+
+                if in_ra_section:
+                    found_key = False
+                    line_lower = line_strip.lower()
+                    for k, v in overrides.items():
+                        k_lower = k.lower()
+                        if line_lower.startswith(k_lower + " =") or line_lower.startswith(k_lower + "="):
+                            new_lines.append(f"{k} = {v}\n")
+                            handled_keys.add(k)
+                            found_key = True
+                            break
+                    if not found_key:
+                        new_lines.append(line)
+                else:
+                    new_lines.append(line)
+
+            # If we reached the end and never added the section, OR stayed in the section until the end
+            if not any(l.strip() == '[Achievements]' for l in new_lines):
+                new_lines.append("\n[Achievements]\n")
+                for k, v in overrides.items():
+                    new_lines.append(f"{k} = {v}\n")
+            elif in_ra_section:
+                # Still in section at EOF, add remaining
+                for k, v in overrides.items():
+                    if k not in handled_keys:
+                        new_lines.append(f"{k} = {v}\n")
+
+            with open(path, 'w') as f:
+                f.writelines(new_lines)
+            updated_count += 1
+            print(f"[DEBUG] Successfully updated: {path}")
+        except Exception as e:
+            print(f"[ERROR] Failed to update PPSSPP config {path}: {e}")
+
+    return updated_count > 0, f"Updated {updated_count} configs"
 
 def update_retroarch_config(username, password, prefs):
     cfg_paths = [

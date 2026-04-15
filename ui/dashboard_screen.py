@@ -2,7 +2,7 @@ import sdl2
 import sdl2.ext
 import threading
 from .components import render_text
-from core import input, retroachievements
+from core import input, retroachievements, hltb
 
 import os
 import json
@@ -21,9 +21,15 @@ class DashboardScreen:
         self.is_loading = True
         self.error_msg = None
         self.scroll_y = 0
+        self.favorites = []
+        self.backlog_hours = 0
         
-        self.scroll_y = 0
-        
+        # Load favorites for backlog stats
+        self.favorites_path = "/mnt/SDCARD/Saves/pyui-favorites.json"
+        if not os.path.exists(self.favorites_path):
+            self.favorites_path = "pyui-favorites.json"
+        self.load_favorites()
+
         self.fetch_data()
 
     def load_config(self):
@@ -33,8 +39,16 @@ class DashboardScreen:
         except:
             self.config = {"ra_username": "", "ra_api_key": ""}
 
+    def load_favorites(self):
+        try:
+            if os.path.exists(self.favorites_path):
+                with open(self.favorites_path, 'r') as f:
+                    self.favorites = json.load(f)
+        except: pass
+
     def fetch_data(self):
         def _task():
+            # 1. Fetch RA Activity
             try:
                 data = retroachievements.get_recent_achievements(self.username, self.api_key)
                 if not data:
@@ -43,6 +57,15 @@ class DashboardScreen:
                     self.achievements = data
             except Exception as e:
                 self.error_msg = f"Failed: {str(e)}"
+            
+            # 2. Calculate Backlog Hours (Async)
+            total = 0
+            for g in self.favorites:
+                data = hltb.get_game_times(g["display_name"])
+                if data:
+                    total += data["main"]
+            self.backlog_hours = total
+            
             self.is_loading = False
             
         threading.Thread(target=_task, daemon=True).start()
@@ -69,8 +92,12 @@ class DashboardScreen:
         render_text(self.renderer, self.font, "Achievements from the last week", 320, 50, (255, 255, 255), center=True)
         
         if self.is_loading:
-            render_text(self.renderer, self.font, "Fetching from RetroAchievements...", 320, 200, (200, 200, 100), center=True)
+            render_text(self.renderer, self.font, "Fetching Insights...", 320, 200, (200, 200, 100), center=True)
             return
+
+        # Backlog Summary
+        if self.backlog_hours > 0:
+            render_text(self.renderer, self.font, f"Backlog: ~{int(self.backlog_hours)}h remaining", 320, 75, (100, 200, 255), center=True)
 
         if self.error_msg:
             render_text(self.renderer, self.font, self.error_msg, 320, 200, (255, 100, 100), center=True)

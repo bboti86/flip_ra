@@ -86,9 +86,11 @@ class AuthScreen:
         api_key = self.input_key.text
         prefs = self.config.get("ra_prefs", {})
         
-        s_conf, ms_conf = retroachievements.update_retroarch_config(username, password, prefs)
-        if not s_conf:
-            self.status_message = f"Config Error: {ms_conf}"
+        s_ra, m_ra = retroachievements.update_retroarch_config(username, password, prefs)
+        s_psp, m_psp = retroachievements.update_ppsspp_config(username, password, prefs)
+        
+        if not s_ra and not s_psp:
+            self.status_message = f"Error: RA({m_ra}) PSP({m_psp})"
             self.status_color = (255, 100, 100)
             return
             
@@ -97,7 +99,8 @@ class AuthScreen:
         self.config["ra_api_key"] = api_key
         self.save_config()
         
-        self.status_message = "Success! Config Updated. Press START for Dashboard."
+        status = "Success! Configs Updated (RA+PSP)" if s_ra and s_psp else "Partial Success!"
+        self.status_message = f"{status}. Press START for Dashboard."
         self.status_color = (100, 255, 100)
 
     def handle_event(self, event):

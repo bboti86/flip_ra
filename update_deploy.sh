@@ -18,7 +18,7 @@ mkdir -p "$DEPLOY_DIR"
 
 echo -e "${BOLD}${BLUE}Copying application files...${RESET}"
 # Copy all necessary directories
-cp -r core ui assets libs "$DEPLOY_DIR/" 2>/dev/null || true
+cp -r core ui assets libs docs "$DEPLOY_DIR/" 2>/dev/null || true
 
 # Copy top-level files
 cp main.py launch.sh settings.json config.json icon.png "$DEPLOY_DIR/" 2>/dev/null || true

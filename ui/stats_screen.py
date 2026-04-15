@@ -71,26 +71,27 @@ class StatsScreen:
 
         # 1. Progression Gauge
         rank = self.stats.get("Rank", "Unknown")
-        total_pts = self.stats.get("TotalPoints", 0)
+        true_pts = self.stats.get("TotalTruePoints", 0)
         
-        # Calculate dynamic next milestone (e.g. next 5000)
-        milestone_step = 5000 if total_pts > 10000 else 1000
-        next_milestone = math.ceil((total_pts + 1) / milestone_step) * milestone_step
+        # Calculate dynamic next milestone for True Points (leaderboard metric)
+        milestone_step = 5000 if true_pts > 10000 else 1000
+        next_milestone = math.ceil((true_pts + 1) / milestone_step) * milestone_step
         
-        progression_pct = total_pts / next_milestone if next_milestone > 0 else 0
+        progression_pct = true_pts / next_milestone if next_milestone > 0 else 0
         
         render_text(self.renderer, self.font, f"Global Rank: #{rank}", 100, 80, (200, 200, 255))
-        render_text(self.renderer, self.font, f"Points: {total_pts} / {next_milestone} (Next Milestone)", 100, 110, (200, 200, 200))
+        render_text(self.renderer, self.font, f"True Points: {true_pts} / {next_milestone}", 100, 110, (200, 200, 200))
         self._draw_bar(100, 140, 440, 25, progression_pct, (100, 200, 255), (50, 50, 80))
 
         # 2. Purity Meter (Hardcore vs Softcore)
-        true_pts = self.stats.get("TotalTruePoints", 0)
-        soft_pts = max(0, total_pts - true_pts)
+        hc_pts = self.stats.get("HCPoints", 0)
+        sc_pts = self.stats.get("SCPoints", 0)
+        total_base = hc_pts + sc_pts
         
-        purity_pct = true_pts / total_pts if total_pts > 0 else 0
+        purity_pct = hc_pts / total_base if total_base > 0 else (1.0 if hc_pts > 0 else 0)
         
         render_text(self.renderer, self.font, "Hardcore Purity:", 100, 200, (255, 200, 100))
-        render_text(self.renderer, self.font, f"{int(purity_pct * 100)}% ({true_pts} HC / {soft_pts} SC)", 100, 230, (200, 200, 200))
+        render_text(self.renderer, self.font, f"{int(purity_pct * 100)}% ({hc_pts} HC / {sc_pts} SC)", 100, 230, (200, 200, 200))
         # Draw Softcore as silver background, Hardcore as Gold fill
         self._draw_bar(100, 260, 440, 25, purity_pct, (255, 215, 0), (192, 192, 192))
         

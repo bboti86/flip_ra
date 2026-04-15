@@ -87,16 +87,21 @@ class SettingsScreen:
                 self.prefs[key] = str((cur + 1) % 4)
         elif action == input.START:
             self.save_config()
-            # Push to RetroArch
+            # Push to RetroArch and PPSSPP
             username = self.config.get("ra_username", "")
             password = self.config.get("ra_password", "")
             if username and password:
-                success, msg = retroachievements.update_retroarch_config(username, password, self.prefs)
-                if success:
-                    self.status_message = "Success! Prefs saved & pushed to RA."
+                success_ra, msg_ra = retroachievements.update_retroarch_config(username, password, self.prefs)
+                success_psp, msg_psp = retroachievements.update_ppsspp_config(username, password, self.prefs)
+
+                if success_ra and success_psp:
+                    self.status_message = "Success! Configs updated (RA+PSP)."
                     self.status_color = (100, 255, 100)
+                elif success_ra or success_psp:
+                    self.status_message = "Partial Success (Check Logs)"
+                    self.status_color = (255, 200, 100)
                 else:
-                    self.status_message = f"Error pushing: {msg}"
+                    self.status_message = "Error pushing configurations."
                     self.status_color = (255, 100, 100)
             else:
                 self.status_message = "Saved locally. Credentials missing to push."
