@@ -6,7 +6,8 @@ import threading
 import difflib
 import time
 from .components import render_text, draw_image
-from core import input, retroachievements, hltb
+# from core import hltb
+from core import input, retroachievements
 
 # Mapping SpruceOS system names to RA Console IDs
 SYSTEM_MAP = {
@@ -63,7 +64,7 @@ class GamesScreen:
         self.loading_msg = ""
         
         self.hltb_data = None
-        self.sort_mode = "DEFAULT" # DEFAULT or SHORTEST
+        self.sort_mode = "DEFAULT" # DISABLED: "SHORTEST"
         self.load_favorites()
 
     def load_config(self):
@@ -87,14 +88,14 @@ class GamesScreen:
             self.error_msg = f"Error loading favorites: {e}"
 
     def apply_sorting(self):
+        # DISABLED: HLTB Sorting
         if self.sort_mode == "SHORTEST":
-            print("[INFO] Sorting favorites by HLTB Main Story time...")
-            # We need to pre-fetch or use cached times if available
-            def get_sort_time(g):
-                # Try cache first
-                data = hltb.get_game_times(g["display_name"])
-                return data["main"] if data else 999
-            self.favorites.sort(key=get_sort_time)
+            # print("[INFO] Sorting favorites by HLTB Main Story time...")
+            # def get_sort_time(g):
+            #     data = hltb.get_game_times(g["display_name"])
+            #     return data["main"] if data else 999
+            # self.favorites.sort(key=get_sort_time)
+            pass
         else:
             # Re-load from file for default order
             try:
@@ -161,14 +162,14 @@ class GamesScreen:
         self.scroll_index = 0
         print(f"[INFO] Loaded {len(self.achievements)} achievements for game ID {self.ra_game_id}")
         
-        # Start background HLTB fetch
-        def _hltb_task():
-            title = self.game_data.get("Title")
-            year = self.game_data.get("Released")
-            self.hltb_data = hltb.get_game_times(title, year)
-            if self.hltb_data:
-                print(f"[HLTB] Found data: {self.hltb_data}")
-        threading.Thread(target=_hltb_task, daemon=True).start()
+        # Start background HLTB fetch - DISABLED
+        # def _hltb_task():
+        #     title = self.game_data.get("Title")
+        #     year = self.game_data.get("Released")
+        #     self.hltb_data = hltb.get_game_times(title, year)
+        #     if self.hltb_data:
+        #         print(f"[HLTB] Found data: {self.hltb_data}")
+        # threading.Thread(target=_hltb_task, daemon=True).start()
         
         # Build download queue
         self.download_queue = []
@@ -231,9 +232,10 @@ class GamesScreen:
             elif action == input.CANCEL:
                 return "SWITCH_TO_AUTH"
             elif action == input.SELECT:
-                self.sort_mode = "SHORTEST" if self.sort_mode == "DEFAULT" else "DEFAULT"
-                self.apply_sorting()
-                self.selected_game_idx = 0
+                # self.sort_mode = "SHORTEST" if self.sort_mode == "DEFAULT" else "DEFAULT"
+                # self.apply_sorting()
+                # self.selected_game_idx = 0
+                pass
                 
         elif self.state == 3: # Achievement Viewer
             if action == input.UP:
@@ -289,9 +291,9 @@ class GamesScreen:
                 render_text(self.renderer, self.font, prefix + game["display_name"], 50, y, color)
                 render_text(self.renderer, self.font, f"[{game.get('game_system_name', '??')}]", 500, y, (150, 150, 150))
 
-            sort_hint = "Default" if self.sort_mode == "DEFAULT" else "Shortest (HLTB)"
-            render_text(self.renderer, self.font, f"Sort: {sort_hint} (SELECT to toggle)", 320, 430, (150, 150, 255), center=True)
-            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Achievements", 320, 455, (150, 150, 150), center=True)
+            # sort_hint = "Default" if self.sort_mode == "DEFAULT" else "Shortest (HLTB)"
+            # render_text(self.renderer, self.font, f"Sort: {sort_hint} (SELECT to toggle)", 320, 430, (150, 150, 255), center=True)
+            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Achievements", 320, 450, (150, 150, 150), center=True)
 
         elif self.state == 1: # Loading
             render_text(self.renderer, self.font, "Establishing Link...", 320, 220, (200, 200, 100), center=True)
@@ -315,11 +317,11 @@ class GamesScreen:
             render_text(self.renderer, self.font, f"Completion: {unlocked}/{total} ({int(pct*100)}%)", 320, 35, (255, 255, 255), center=True)
             self._draw_progress_bar(120, 60, 400, 10, pct, (0, 255, 0))
             
-            # HLTB Times
-            if self.hltb_data:
-                h = self.hltb_data
-                hltb_str = f"Story: {h['main']}h | Extras: {h['plus']}h | 100%: {h['100']}h"
-                render_text(self.renderer, self.font, hltb_str, 320, 75, (200, 200, 255), center=True)
+            # HLTB Times - DISABLED
+            # if self.hltb_data:
+            #     h = self.hltb_data
+            #     hltb_str = f"Story: {h['main']}h | Extras: {h['plus']}h | 100%: {h['100']}h"
+            #     render_text(self.renderer, self.font, hltb_str, 320, 75, (200, 200, 255), center=True)
             
             # List achievements (show exactly 5)
             for i in range(5):

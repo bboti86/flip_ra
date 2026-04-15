@@ -2,7 +2,8 @@ import sdl2
 import sdl2.ext
 import threading
 from .components import render_text
-from core import input, retroachievements, hltb
+# from core import hltb
+from core import input, retroachievements
 
 import os
 import json
@@ -22,7 +23,7 @@ class DashboardScreen:
         self.error_msg = None
         self.scroll_y = 0
         self.favorites = []
-        self.backlog_hours = 0
+        # self.backlog_hours = 0
         
         # Load favorites for backlog stats
         self.favorites_path = "/mnt/SDCARD/Saves/pyui-favorites.json"
@@ -58,13 +59,13 @@ class DashboardScreen:
             except Exception as e:
                 self.error_msg = f"Failed: {str(e)}"
             
-            # 2. Calculate Backlog Hours (Async)
-            total = 0
-            for g in self.favorites:
-                data = hltb.get_game_times(g["display_name"])
-                if data:
-                    total += data["main"]
-            self.backlog_hours = total
+            # 2. Calculate Backlog Hours (Async) - DISABLED
+            # total = 0
+            # for g in self.favorites:
+            #     data = hltb.get_game_times(g["display_name"])
+            #     if data:
+            #         total += data["main"]
+            # self.backlog_hours = total
             
             self.is_loading = False
             
@@ -95,9 +96,9 @@ class DashboardScreen:
             render_text(self.renderer, self.font, "Fetching Insights...", 320, 200, (200, 200, 100), center=True)
             return
 
-        # Backlog Summary
-        if self.backlog_hours > 0:
-            render_text(self.renderer, self.font, f"Backlog: ~{int(self.backlog_hours)}h remaining", 320, 75, (100, 200, 255), center=True)
+        # Backlog Summary - DISABLED
+        # if self.backlog_hours > 0:
+        #    render_text(self.renderer, self.font, f"Backlog: ~{int(self.backlog_hours)}h remaining", 320, 75, (100, 200, 255), center=True)
 
         if self.error_msg:
             render_text(self.renderer, self.font, self.error_msg, 320, 200, (255, 100, 100), center=True)
