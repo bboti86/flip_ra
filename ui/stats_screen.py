@@ -45,7 +45,7 @@ class StatsScreen:
         action = input.map_event(event)
 
         if action == input.L_BUMPER:
-            return "SWITCH_TO_DASHBOARD"
+            return "SWITCH_TO_GAMES"
         elif action == input.R_BUMPER:
             return "SWITCH_TO_AUTH"
 

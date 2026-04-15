@@ -53,7 +53,7 @@ class DashboardScreen:
         if action == input.L_BUMPER:
             return "SWITCH_TO_SETTINGS"
         elif action == input.R_BUMPER:
-            return "SWITCH_TO_STATS"
+            return "SWITCH_TO_GAMES"
 
         if action == input.UP:
             self.scroll_y = max(0, self.scroll_y - 20)

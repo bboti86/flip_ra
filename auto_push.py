@@ -10,6 +10,16 @@ PASSWORD = "happygaming"
 REMOTE_APP_DIR = "/mnt/SDCARD/App"
 FOLDER_NAME = "RA_Manager"
 
+# ANSI Color Codes
+GREEN = "\033[92m"
+BLUE = "\033[94m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+MAGENTA = "\033[95m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
 def create_ssh_client(server, port, user, password):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -17,54 +27,73 @@ def create_ssh_client(server, port, user, password):
     return client
 
 def run_local_build():
-    print("1) Re-building deployment...")
-    os.system("bash update_deploy.sh > /dev/null")
+    print(f"\n{BOLD}{CYAN}1) 🛠️  Re-building deployment...{RESET}")
+    os.system("bash update_deploy.sh")
 
 def deploy():
+    os.system('clear')
     run_local_build()
+    print(f"{BOLD}{GREEN}=================================================={RESET}")
+    print(f" {GREEN}✅ Deployment Complete! The app is ready to push.{RESET}")
+    print(f"{BOLD}{GREEN}=================================================={RESET}")
     
-    print(f"2) Connecting to {DEVICE_IP} as {USER}...")
+    print(f"{BOLD}{CYAN}2) 🤝 Connecting to {DEVICE_IP} as {USER}...{RESET}")
     try:
         ssh = create_ssh_client(DEVICE_IP, 22, USER, PASSWORD)
     except Exception as e:
-        print(f"[!] Failed to connect: {e}")
+        print(f"{RED}[!] ❌ Failed to connect: {e}{RESET}")
         sys.exit(1)
 
-    print("3) Grabbing runtime.log and settings.json from device...")
+    print(f"{BOLD}{CYAN}3) 📥 Grabbing runtime logs, badges cache, and settings.json from device...{RESET}")
     try:
         with SCPClient(ssh.get_transport()) as scp:
-            try:
-                scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/runtime.log", local_path="device_runtime.log")
-                print("   -> Downloaded to device_runtime.log")
-            except:
-                print("   -> No runtime.log found.")
+            # Grab rotated logs
+            for log_suffix in ["", ".1", ".2"]:
+                remote_log = f"{REMOTE_APP_DIR}/{FOLDER_NAME}/runtime.log{log_suffix}"
+                local_log = f"device_runtime.log{log_suffix}"
+                try:
+                    scp.get(remote_log, local_path=local_log)
+                    print(f"   {BLUE}-> 📄 Downloaded {os.path.basename(remote_log)} to {local_log}{RESET}")
+                except:
+                    pass
             
+            # Grab cached badges to preserve them across pushes
+            try:
+                if not os.path.exists("assets/badges"):
+                    os.makedirs("assets/badges")
+                scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/badges", local_path="assets", recursive=True)
+                print(f"   {BLUE}-> 🖼️  Preserved badges cache from device{RESET}")
+                # Ensure they are in the deploy folder for the next step
+                os.system(f"cp -r assets/badges deploy/{FOLDER_NAME}/assets/")
+            except:
+                print(f"   {YELLOW}-> ⚠️  No badges cache found to preserve.{RESET}")
+
             try:
                 scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/settings.json", local_path="settings.json")
-                print("   -> Downloaded to settings.json (preserved)")
+                print(f"   {BLUE}-> ⚙️  Downloaded to settings.json (preserved){RESET}")
                 # Copy the preserved settings.json into the deploy directory so it gets pushed back
                 os.system(f"cp settings.json deploy/{FOLDER_NAME}/settings.json")
             except:
-                print("   -> No settings.json found on device.")
+                print(f"   {YELLOW}-> ⚠️  No settings.json found on device.{RESET}")
     except Exception as e:
-        print(f"   -> Failed to fetch files: {e}")
+        print(f"   {RED}-> ❌ Failed to fetch files: {e}{RESET}")
 
-    print("4) Removing old revision from SpruceOS...")
+    print(f"{BOLD}{CYAN}4) 🧹 Removing old revision from SpruceOS...{RESET}")
     target_folder = f"{REMOTE_APP_DIR}/{FOLDER_NAME}"
     ssh.exec_command(f"rm -rf '{target_folder}'")
     
-    print("5) Pushing new application files via secure copy...")
+    print(f"{BOLD}{CYAN}5) 🚀 Pushing new application files via secure copy...{RESET}")
     try:
         with SCPClient(ssh.get_transport()) as scp:
             scp.put(f"deploy/{FOLDER_NAME}", recursive=True, remote_path=REMOTE_APP_DIR)
     except Exception as e:
-        print(f"[!] File stream interrupted: {e}")
+        print(f"{RED}[!] ❌ File stream interrupted: {e}{RESET}")
         ssh.close()
         sys.exit(1)
         
-    print("=========================================")
-    print(" ✅ Push Complete! The app is updated.")
-    print("=========================================")
+    print(f"\n{BOLD}{GREEN}========================================={RESET}")
+    print(f" {BOLD}{GREEN}🏁 ✅ Push Complete! The app is updated.{RESET}")
+    print(f"{BOLD}{GREEN}========================================={RESET}\n")
     ssh.close()
 
 if __name__ == '__main__':

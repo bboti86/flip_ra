@@ -15,9 +15,14 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
 *   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
 *   **📊 Gamified Profile Stats**: Check your progress without launching a browser:
     *   **Dashboard**: View all your unlocked achievements from the last 7 days.
+    *   **Games & Achievements**: Integration with SpruceOS favorites (`pyui-favorites.json`) to browse achievements and track completion progress for your top games. Includes background badge caching and a nostalgic ASCII progress bar.
     *   **Progression Gauge**: A visual bar tracking the points you need to hit your next global milestone.
     *   **Purity Meter**: A Gold/Silver ratio bar showing your Hardcore vs. Softcore points split.
     *   **Crown Jewel**: Automatically highlights your single rarest recent achievement based on `RetroRatio` rarity.
+*   **🩺 Diagnostics & Logging**:
+    *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
+    *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
+    *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs from your device for easy remote debugging.
 *   **⚡ Smart Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally for 1 hour.
 
 ---

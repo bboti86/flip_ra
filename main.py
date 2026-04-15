@@ -9,10 +9,47 @@ import sdl2.sdlttf
 import core.input
 from ui.auth_screen import AuthScreen
 from ui.dashboard_screen import DashboardScreen
+from ui.games_screen import GamesScreen
 from ui.settings_screen import SettingsScreen
 from ui.stats_screen import StatsScreen
 
+class Logger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+        self.log.flush()
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+def rotate_logs(base_path):
+    # Rotate log.1 to log.2
+    log1 = base_path + ".1"
+    log2 = base_path + ".2"
+    if os.path.exists(log1):
+        if os.path.exists(log2):
+            os.remove(log2)
+        os.rename(log1, log2)
+    
+    # Rotate log to log.1
+    if os.path.exists(base_path):
+        os.rename(base_path, log1)
+
 def main():
+    # Setup logging with rotation
+    log_path = os.path.join(os.path.dirname(__file__), 'runtime.log')
+    rotate_logs(log_path)
+    
+    sys.stdout = Logger(log_path)
+    sys.stderr = sys.stdout
+    
+    print("--- RA Configurator Starting ---")
+    
     sdl2.ext.init()
     if sdl2.sdlttf.TTF_Init() == -1:
         print(f"TTF_Init Error: {sdl2.sdlttf.TTF_GetError().decode('utf-8')}")
@@ -53,12 +90,19 @@ def main():
                 result = current_screen.handle_event(event)
                 
                 if result == "SWITCH_TO_DASHBOARD":
+                    print("[INFO] Switching to Dashboard")
                     current_screen = DashboardScreen(renderer, font)
                 elif result == "SWITCH_TO_SETTINGS":
+                    print("[INFO] Switching to Settings")
                     current_screen = SettingsScreen(renderer, font)
+                elif result == "SWITCH_TO_GAMES":
+                    print("[INFO] Switching to Games")
+                    current_screen = GamesScreen(renderer, font)
                 elif result == "SWITCH_TO_STATS":
+                    print("[INFO] Switching to Stats")
                     current_screen = StatsScreen(renderer, font)
                 elif result == "SWITCH_TO_AUTH":
+                    print("[INFO] Switching to Auth")
                     current_screen = AuthScreen(renderer, font)
 
         renderer.clear(sdl2.ext.Color(20, 20, 20))

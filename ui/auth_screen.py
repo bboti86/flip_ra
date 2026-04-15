@@ -65,11 +65,13 @@ class AuthScreen:
         def _task():
             success, msg = retroachievements.verify_credentials(username, api_key)
             if not success:
+                print(f"[AUTH] Verification failed for user {username}: {msg}")
                 self.status_message = f"Error: {msg}"
                 self.status_color = (255, 100, 100)
                 self.is_verifying = False
                 return
-                
+            
+            print(f"[AUTH] Credentials verified successfully for user {username}")
             self.status_message = "Valid! Press A to Overwrite Retroarch Config, or B to Cancel."
             self.status_color = (100, 255, 255)
             self.is_verifying = False

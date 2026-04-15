@@ -1,9 +1,11 @@
 # Credentials and Local Settings (NEVER COMMIT THESE)
 settings.json
+pyui-favorites.json
 
 # API and Log Caches
 api_cache.json
-device_runtime.log
+device_runtime.log*
+assets/badges/
 
 # Python Cache
 __pycache__/

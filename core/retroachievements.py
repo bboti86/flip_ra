@@ -220,3 +220,74 @@ def update_retroarch_config(username, password, prefs):
         return False, "; ".join(errors)
         
     return True, f"Updated {updated_count} config files"
+
+def get_game_list(username, api_key, console_id):
+    """
+    Fetches the list of games for a specific console ID.
+    """
+    cache_key = f"console_{console_id}_games"
+    cached = _get_cached_data(cache_key)
+    if cached:
+        print(f"[CACHE] Hit for console {console_id} games")
+        return cached
+
+    print(f"[API] Fetching game list for console {console_id}")
+    url = f"https://retroachievements.org/API/API_GetGameList.php?u={username}&y={api_key}&i={console_id}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                if isinstance(data, list):
+                    _set_cached_data(cache_key, data)
+                    return data
+    except Exception as e:
+        print(f"[ERROR] get_game_list failed: {e}")
+    return []
+
+def get_game_info_and_user_progress(username, api_key, game_id):
+    """
+    Gets detailed game info and user achievement progress for a game.
+    """
+    cache_key = f"game_{game_id}_progress"
+    cached = _get_cached_data(cache_key)
+    if cached:
+        print(f"[CACHE] Hit for game {game_id} progress")
+        return cached
+
+    print(f"[API] Fetching progress for game {game_id}")
+    url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?u={username}&y={api_key}&user={username}&g={game_id}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                _set_cached_data(cache_key, data)
+                return data
+    except Exception as e:
+        print(f"[ERROR] get_game_info_and_user_progress failed: {e}")
+    return {}
+
+def download_badge(badge_name, is_locked=False):
+    """
+    Downloads a badge image if it doesn't exist locally.
+    Returns the local path.
+    """
+    suffix = "_lock" if is_locked else ""
+    local_filename = f"{badge_name}{suffix}.png"
+    local_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'badges', local_filename)
+    
+    if os.path.exists(local_path):
+        return local_path
+        
+    url = f"https://media.retroachievements.org/Badge/{badge_name}{suffix}.png"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                with open(local_path, 'wb') as f:
+                    f.write(response.read())
+                return local_path
+    except Exception as e:
+        print(f"[ERROR] download_badge failed ({url}): {e}")
+    return None

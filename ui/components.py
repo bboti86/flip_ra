@@ -1,6 +1,36 @@
 import sdl2
 import sdl2.ext
 import sdl2.sdlttf
+import sdl2.sdlimage
+import os
+
+_texture_cache = {}
+
+def draw_image(renderer, path, x, y, w=None, h=None):
+    if not path or not os.path.exists(path):
+        return
+    
+    if path in _texture_cache:
+        texture = _texture_cache[path]
+    else:
+        surface = sdl2.sdlimage.IMG_Load(path.encode('utf-8'))
+        if not surface:
+            return
+        texture = sdl2.SDL_CreateTextureFromSurface(renderer.sdlrenderer, surface)
+        sdl2.SDL_FreeSurface(surface)
+        if not texture:
+            return
+        _texture_cache[path] = texture
+
+    # Get width/height if not provided
+    if w is None or h is None:
+        query_w, query_h = sdl2.Uint32(), sdl2.Uint32()
+        sdl2.SDL_QueryTexture(texture, None, None, query_w, query_h)
+        w = w or query_w.value
+        h = h or query_h.value
+        
+    rect = sdl2.SDL_Rect(int(x), int(y), int(w), int(h))
+    sdl2.SDL_RenderCopy(renderer.sdlrenderer, texture, None, rect)
 
 def render_text(renderer, font, text, x, y, fg_color, center=False):
     if not text:
