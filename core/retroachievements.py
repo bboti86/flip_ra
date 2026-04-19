@@ -95,6 +95,29 @@ def get_recent_achievements(username, password, count=10080):
         print(f"[ERROR] Fetch achievements failed: {e}")
     return []
 
+def get_user_completed_games(username, api_key):
+    """
+    Fetches the games a user has completed or played.
+    """
+    if not username or not api_key:
+        return []
+        
+    cached = _get_cached_data("completed_games")
+    if cached is not None:
+        return cached
+
+    url = f"https://retroachievements.org/API/API_GetUserCompletedGames.php?u={username}&y={api_key}&user={username}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                _set_cached_data("completed_games", data)
+                return data
+    except Exception as e:
+        print(f"[ERROR] Fetch completed games failed: {e}")
+    return []
+
 def get_user_stats(username, password):
     """
     Returns high-level stats: Rank, Softcore/Hardcore Points, and Rarest Achievement.
