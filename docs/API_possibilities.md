@@ -99,23 +99,38 @@ The following features have been successfully implemented:
 *   ✅ **Progression Gauge**: Dynamic rank and point tracking.
 *   ✅ **Purity Meter**: Hardcore vs. Softcore points split visualization.
 *   ✅ **Crown Jewel**: Automatic highlighting of your rarest recent achievement with badge preview.
-*   ✅ **Console Dominance**: Ranked breakdown of Top 3 systems using dual bar charts (Games vs. Achievements).
+*   ✅ **Console Dominance**: Ranked breakdown of Top 5 systems using dual bar charts (Games vs. Achievements).
 *   ✅ **Fluid Navigation**: Hardware-accelerated pixel scrolling and clipping for all list-heavy screens.
+*   ✅ **Mastery Wall**: A visual grid fetching official Game Icons for 100% completed games.
+*   ✅ **Backlog Tracker**: Lists the top 5 games closest to mastery (10%+ completion) to motivate finishing them.
+*   ✅ **Completionist Rank**: Skill title and percentage calculation based on mastery rate vs. started games.
 
 ---
 
-### **Future Roadmap Ideas**
+### **Future Roadmap Ideas (Community & Live Features)**
 
-With the successful implementation of the async background syncing engine and local `tar` image caching, the following features remain highly feasible for future development:
+With the successful implementation of the async background syncing engine, local `tar` image caching, and core PySDL2 UI, the following features remain highly feasible for future development. 
 
-#### **1. The Mastery Wall 🏆**
+#### **1. Achievement of the Week Challenge 🏆**
 *   **Feasibility: Very High**
-*   **How:** A dedicated visual grid on the Stats screen that fetches official Game Icons for games where `NumAwarded == NumAchievements`. Displays a beautiful gallery of 100% completed games.
+*   **How:** RetroAchievements hosts a community "Achievement of the Week" (AotW). We can add a dedicated banner to the Dashboard that fetches the current AotW via the `API_GetAchievementOfTheWeek.php` endpoint. It would show the game, the badge, and your unlock status.
 
-#### **2. The Backlog Tracker (Closest to Mastery) 📈**
+#### **2. "Missable" Achievement Warnings 🚨**
 *   **Feasibility: High**
-*   **How:** Leverage the background syncing engine to silently scan games and list the ones where completion is at 90%+ at the bottom of the Stats screen, motivating the user to finish them.
+*   **How:** Parse achievement metadata. Often, achievements are tagged as "Missable" or "Progression". We could add a bright red warning icon next to missable achievements in your game view so you know what to watch out for before committing 40 hours to an RPG.
 
-#### **3. The "Retro Ratio" Heatmap 🔥**
+#### **3. Actual vs. Expected Playtime ⏱️**
+*   **Feasibility: High**
+*   **How:** We already have HowLongToBeat (HLTB) estimates. RetroArch maintains local play history logs (`.lrc` files). We could parse these local logs and display a progress bar in your Games list: *"You've played 12 hours. HLTB says 15 hours. You are 80% through!"*
+
+#### **4. The "Retro Ratio" Heatmap 🔥**
 *   **Feasibility: Medium**
-*   **How:** A GitHub-style activity grid color-coded by the rarity (Retro Ratio) of achievements earned each day. Requires careful handling of the potentially large historical data payload.
+*   **How:** A GitHub-style activity grid color-coded by the rarity (Retro Ratio) of achievements earned each day. Requires careful handling of the potentially large historical data payload to ensure it doesn't bog down the Miyoo's memory.
+
+#### **5. The Social Feed (Friends Activity) 👥**
+*   **Feasibility: Medium**
+*   **How:** Add a "Social" tab that hits the `API_GetUserFeed.php` endpoint. It would render a scrolling timeline showing when your friends unlock rare achievements or master new games.
+
+#### **6. "Now Playing" Live Assistant 🎯**
+*   **Feasibility: Medium**
+*   **How:** When the app launches, use a background script to check the SpruceOS system processes (or the most recently modified `.srm` save file) to detect the last game played. The app could immediately boot into a "Live Session" page showing exactly which achievements you are closest to unlocking for that specific game.

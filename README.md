@@ -103,8 +103,13 @@ If you are modifying the code, use the included `auto_push.py` script to rapidly
 
 ## 🗺️ Roadmap / Planned Features
 
+- [ ] **🏆 Achievement of the Week**: Fetch and display the community's current weekly challenge directly on the Dashboard.
+- [ ] **🚨 "Missable" Warnings**: Parse achievement metadata to flag missable achievements in your games list to save you from restarting RPGs.
 - [ ] **🔥 Retro Ratio Heatmap**: A GitHub-style activity grid color-coded by achievement rarity.
 - [ ] **⏳ Total Backlog Hours**: Sum up HLTB times to estimate how long to clear your favorites list.
+- [ ] **⏱️ Actual vs. Expected Playtime**: Parse local RetroArch `.lrc` logs to compare your actual playtime against the HLTB estimate.
+- [ ] **👥 The Social Feed**: A dedicated timeline tab showing when your friends unlock rare achievements or master games.
+- [ ] **🎯 "Now Playing" Assistant**: Auto-detect your currently running game via SpruceOS processes to immediately display relevant missing achievements.
 - [ ] **☁️ Cloud Save Backup**: Automated syncing of `settings.json` and cache to a remote backup service.
 
 ---
