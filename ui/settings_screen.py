@@ -36,6 +36,11 @@ class SettingsScreen:
         self.status_message = ""
         self.status_color = (200, 200, 200)
 
+        # Navigation Repeat Logic
+        self.repeat_timers = {}
+        self.REPEAT_DELAY = 0.4
+        self.REPEAT_INTERVAL = 0.1
+
     def load_config(self):
         # Default Preferences
         self.prefs = {
@@ -66,6 +71,27 @@ class SettingsScreen:
         with open(self.config_path, 'w') as f:
             json.dump(self.config, f, indent=4)
 
+    def update(self, dt):
+        for action in [input.UP, input.DOWN]:
+            if input.is_pressed(action):
+                if action not in self.repeat_timers:
+                    self.repeat_timers[action] = 0.0
+                else:
+                    self.repeat_timers[action] += dt
+                    
+                    if self.repeat_timers[action] >= self.REPEAT_DELAY:
+                        self._navigate(action)
+                        self.repeat_timers[action] = self.REPEAT_DELAY - self.REPEAT_INTERVAL
+            else:
+                if action in self.repeat_timers:
+                    del self.repeat_timers[action]
+
+    def _navigate(self, action):
+        if action == input.UP:
+            self.index = max(0, self.index - 1)
+        elif action == input.DOWN:
+            self.index = min(len(self.settings_map) - 1, self.index + 1)
+
     def handle_event(self, event):
         action = input.map_event(event)
         
@@ -74,10 +100,8 @@ class SettingsScreen:
         elif action == input.R_BUMPER:
             return "SWITCH_TO_DASHBOARD"
             
-        if action == input.UP:
-            self.index = max(0, self.index - 1)
-        elif action == input.DOWN:
-            self.index = min(len(self.settings_map) - 1, self.index + 1)
+        if action in [input.UP, input.DOWN]:
+            self._navigate(action)
         elif action == input.ACCEPT:
             label, key, type = self.settings_map[self.index]
             if type == "bool":
