@@ -21,6 +21,7 @@ class StatsScreen:
         self.stats = {}
         self.completed_games = []
         self.top_consoles = []
+        self.backlog_games = []
         self.is_loading = True
         self.error_msg = None
         self.scroll_y = 0
@@ -53,6 +54,15 @@ class StatsScreen:
                 # Sort consoles by games played
                 self.top_consoles = sorted(consoles.items(), key=lambda x: x[1]["games"], reverse=True)[:3]
                 
+                # Identify Backlog (90% to 99% completion)
+                backlog = []
+                for g in self.completed_games:
+                    pct = float(g.get("PctWon", 0))
+                    if 0.1 <= pct < 1.0:
+                        backlog.append(g)
+                # Sort backlog by highest completion first
+                self.backlog_games = sorted(backlog, key=lambda x: float(x.get("PctWon", 0)), reverse=True)[:3]
+                
                 # Start background download of the Crown Jewel badge
                 def _download_rarest_badge():
                     rarest = self.stats.get("HighestRatioAch")
@@ -78,7 +88,7 @@ class StatsScreen:
         elif action == input.UP:
             self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(400, self.scroll_y + self.SCROLL_STEP) # Allow scrolling down
+            self.scroll_y = min(600, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for backlog
         elif action == input.CANCEL:
             return "SWITCH_TO_WELCOME"
         return None
@@ -185,8 +195,25 @@ class StatsScreen:
                 self._draw_bar(80, y_offset, 480, 24, a_count / max_achs if max_achs else 0, (255, 215, 0), (50, 50, 30))
                 render_text(self.renderer, self.font, f"{a_count} Achievements", 85, y_offset, (0, 0, 0))
                 y_offset += 35
+        # 5. Backlog Tracker (Closest to Mastery)
+        y_offset += 15
+        render_text_shadow(self.renderer, self.font, "Backlog Tracker (10%+):", 80, y_offset, (255, 150, 50), shadow_offset=1)
+        y_offset += 35
+        
+        if self.backlog_games:
+            for g in self.backlog_games:
+                title = g.get("Title", "Unknown")
+                pct = float(g.get("PctWon", 0)) * 100
+                console = g.get("ConsoleName", "Unknown")
+                
+                render_text_shadow(self.renderer, self.font, f"{title} ({console})", 80, y_offset, (255, 255, 255), shadow_offset=1)
+                y_offset += 25
+                self._draw_bar(80, y_offset, 480, 18, pct/100, (255, 150, 50), (60, 40, 20))
+                render_text(self.renderer, self.font, f"{int(pct)}% Complete", 85, y_offset - 2, (0, 0, 0))
+                y_offset += 30
         else:
-            render_text_shadow(self.renderer, self.font, "No console data available.", 80, y_offset, (150, 150, 150), shadow_offset=1)
+            render_text_shadow(self.renderer, self.font, "No games near mastery.", 80, y_offset, (150, 150, 150), shadow_offset=1)
+            y_offset += 30
 
         # Disable Clipping
         sdl2.SDL_RenderSetClipRect(self.renderer.sdlrenderer, None)

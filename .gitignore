@@ -6,6 +6,7 @@ pyui-favorites.json
 api_cache.json
 device_runtime.log*
 assets/badges/
+badges.tar
 old_icon.png
 
 # Python Cache
