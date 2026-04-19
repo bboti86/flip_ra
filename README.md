@@ -12,17 +12,20 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
 *   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files (`.cfg`) and PPSSPP (`.ini`) configs at once.
 *   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
 *   **📊 Gamified Profile Stats**: Check your progress without launching a browser:
-    *   **Dashboard**: View recent achievements and tracking milestones.
-    *   **Games & Achievements**: Browse progress for your favorite games. Includes background badge caching and a nostalgic ASCII progress bar.
+    *   **Recent Achievements**: View every achievement unlocked over the past week.
+    *   **Favorite Games**: Browse progress for your favorite games, beautifully populated with official square game icons and dynamic background badge downloading. Includes a global mass-download feature.
     *   **Progression Gauge**: A visual bar tracking the points you need to hit your next global milestone.
     *   **Purity Meter**: A Gold/Silver ratio bar showing your Hardcore vs. Softcore points split.
     *   **Crown Jewel**: Automatically highlights your single rarest recent achievement based on `RetroRatio` rarity.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
     *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
-    *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs from your device for easy remote debugging.
-*   **⚡ Smart Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally for 1 hour.
+    *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs and preserves your image cache securely using device-side `tar` archives.
+*   **⚡ Smart Caching & Quality of Life**: 
+    *   **State Memory**: The app remembers exactly which tab you left off on and restores it instantly on next launch.
+    *   **API Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally.
 *   **🏎️ Fluid Navigation**: Experience smooth, high-speed browsing of large game lists:
+    *   **Hardware Clipping**: Native PySDL2 clip rects provide buttery-smooth pixel scrolling for partially hidden list items.
     *   **Continuous Scrolling**: Hold Up/Down to scroll automatically after a short delay.
     *   **Wrap-around Logic**: Seamlessly cycle from the top to the bottom of lists (and vice versa).
     *   **Page Jumps**: Use L2/R2 to jump whole pages at a time in long lists.
@@ -35,13 +38,14 @@ The app uses standard SDL GameController mappings natively compatible with the M
 
 | Action | Control | Description |
 | :--- | :--- | :--- |
-| **Cycle Tabs** | `L1` / `R1` | Seamlessly cycle between Auth ↔ Settings ↔ Dashboard ↔ Stats. |
+| **Cycle Tabs** | `L1` / `R1` | Seamlessly cycle between Auth ↔ Settings ↔ Recent ↔ Games ↔ Stats. |
 | **Navigate** | `D-Pad` | Move between items. **Hold** for continuous scrolling. |
 | **Page Up / Down** | `L2` / `R2` | Scroll through entire pages of achievements or games. |
 | **Wrap-around** | `D-Pad UP/DOWN` | Cycling from the top of a list jumps to the bottom. |
-| **Select / Toggle** | `A` Button | Open keyboard for text fields, or toggle YES/NO booleans. |
+| **Select / Toggle** | `A` Button | Open keyboard for text fields, view a game's achievements, or toggle booleans. |
 | **Go Back** | `B` Button | Cancel input or return to the previous screen. |
-| **Save / Sync** | `Start` | Save preferences and push configurations. |
+| **Global Badge Sync**| `Start` | In the Favorite Games view, press Start to batch download all game icons and badges. |
+| **Save / Sync** | `Start` | In Auth/Settings, press Start to save preferences and push configurations. |
 
 ---
 
@@ -60,13 +64,13 @@ If you are modifying the code, use the included `auto_push.py` script to rapidly
 ```bash
 ./auto_push.py
 ```
-*(This script intelligently preserves your `settings.json` so you do not lose your credentials during updates).*
+*(This script intelligently preserves your `settings.json` and cached image assets securely so you do not lose data during updates).*
 
 ---
 
 ## 🖼️ Application Structure
 
-The application is split into four distinct, fast-rendering screens:
+The application is split into multiple fast-rendering screens:
 
 ### 1. Credentials (AuthScreen)
 The core login screen. Enter your RetroAchievements Username, Password (required by RetroArch), and Web API Key (required for pulling advanced user stats). 
@@ -77,10 +81,16 @@ A toggle menu to adjust how RetroAchievements behaves inside games.
 - Set **Appearance Anchors** (Top-Left, Bottom-Right, etc.) to keep UI elements from blocking vital HUD components.
 - Toggle Challenge Indicators, Auto-Screenshots, and Unlock Sounds.
 
-### 3. Dashboard (DashboardScreen)
-Displays a cleanly formatted list of every achievement you have unlocked in the past week (10,080 minutes), complete with game titles and unlock dates.
+### 3. Recent Achievements (DashboardScreen)
+Displays a cleanly formatted, pixel-scrollable list of every achievement you have unlocked in the past week, dynamically loading your locally cached achievement badges for a premium UI experience.
 
-### 4. Profile Stats (StatsScreen)
+### 4. Favorite Games (GamesScreen)
+Directly reads your SpruceOS `pyui-favorites.json` and connects them to RetroAchievements!
+- **Dynamic Matching**: Fuzzy-matches your local ROM names against the RA database.
+- **Icon Caching**: Downloads and caches official square Game Icons for an enhanced list view.
+- **Global Badge Sync**: Features an autonomous background worker that iterates through all your favorites and batch-downloads every single missing asset to your device for offline browsing!
+
+### 5. Profile Stats (StatsScreen)
 The gamification layer. Generates custom tracking bars utilizing mathematical calculations on the raw API data to visualize your rank progression, "purity" ratio, and your crowning achievement.
 
 ---

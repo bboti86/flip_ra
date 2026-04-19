@@ -3,7 +3,7 @@ import sdl2.ext
 import json
 import os
 
-from .components import render_text
+from .components import render_text, render_text_shadow, draw_panel, draw_selector
 from core import input, retroachievements
 
 class SettingsScreen:
@@ -107,19 +107,33 @@ class SettingsScreen:
                 self.status_message = "Saved locally. Credentials missing to push."
                 self.status_color = (100, 200, 255)
         elif action == input.CANCEL:
-            sdl2.SDL_EventState(sdl2.SDL_QUIT, sdl2.SDL_ENABLE)
-            ev = sdl2.SDL_Event(); ev.type = sdl2.SDL_QUIT
-            sdl2.SDL_PushEvent(ev)
+            return "SWITCH_TO_WELCOME"
 
     def draw(self):
-        render_text(self.renderer, self.font, "RetroAchievements Preferences", 320, 20, (255, 255, 255), center=True)
+        # 1. Background
+        self.renderer.fill((0, 0, 640, 480), sdl2.ext.Color(15, 15, 20))
+        
+        # 2. Header Frame
+        draw_panel(self.renderer, 40, 10, 560, 40, bg_color=(30, 25, 40, 255), border_color=(255, 215, 0))
+        render_text_shadow(self.renderer, self.font, "RetroAchievements Preferences", 320, 20, (255, 215, 0), shadow_offset=2, center=True)
+        
+        # 3. Main Panel
+        draw_panel(self.renderer, 40, 60, 560, 335, bg_color=(20, 20, 30, 230), border_color=(80, 80, 100))
         
         base_y = 70
         spacing = 40
         
         for i, (label, key, type) in enumerate(self.settings_map):
-            color = (255, 255, 100) if i == self.index else (200, 200, 200)
-            render_text(self.renderer, self.font, label + ":", 100, base_y + i * spacing, color)
+            y = base_y + i * spacing
+            is_selected = (i == self.index)
+            
+            if is_selected:
+                draw_selector(self.renderer, 45, y - 2, 550, 38, color=(0, 200, 255))
+                label_color = (255, 255, 255)
+            else:
+                label_color = (180, 180, 180)
+                
+            render_text_shadow(self.renderer, self.font, label + ":", 60, y + 8, label_color, shadow_offset=1)
             
             val = self.prefs.get(key)
             val_text = ""
@@ -132,9 +146,10 @@ class SettingsScreen:
                 val_text = self.anchor_labels.get(val, val)
                 val_color = (100, 200, 255)
                 
-            render_text(self.renderer, self.font, val_text, 400, base_y + i * spacing, val_color)
+            render_text_shadow(self.renderer, self.font, val_text, 360, y + 8, val_color, shadow_offset=1)
             
         if self.status_message:
-            render_text(self.renderer, self.font, self.status_message, 320, 420, self.status_color, center=True)
+            draw_panel(self.renderer, 40, 405, 560, 35, bg_color=(20, 20, 30, 255), border_color=(100, 100, 100))
+            render_text_shadow(self.renderer, self.font, self.status_message, 320, 412, self.status_color, shadow_offset=1, center=True)
             
-        render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Toggle | Start: Save", 320, 450, (150, 150, 150), center=True)
+        render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Toggle | Start: Save | B: Menu", 320, 450, (150, 150, 150), shadow_offset=1, center=True)

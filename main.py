@@ -12,6 +12,7 @@ from ui.dashboard_screen import DashboardScreen
 from ui.games_screen import GamesScreen
 from ui.settings_screen import SettingsScreen
 from ui.stats_screen import StatsScreen
+from ui.welcome_screen import WelcomeScreen
 
 class Logger:
     def __init__(self, filename):
@@ -78,7 +79,7 @@ def main():
     font = sdl2.sdlttf.TTF_OpenFont(font_path.encode('utf-8'), 20)
     
     # Initialize current_screen and timing
-    current_screen = AuthScreen(renderer, font)
+    current_screen = WelcomeScreen(renderer, font)
     last_time = sdl2.SDL_GetTicks()
     
     running = True
@@ -95,7 +96,13 @@ def main():
             else:
                 result = current_screen.handle_event(event)
                 
-                if result == "SWITCH_TO_DASHBOARD":
+                if result == "QUIT_APP":
+                    print("[INFO] Quitting Application")
+                    running = False
+                elif result == "SWITCH_TO_WELCOME":
+                    print("[INFO] Switching to Welcome")
+                    current_screen = WelcomeScreen(renderer, font)
+                elif result == "SWITCH_TO_DASHBOARD":
                     print("[INFO] Switching to Dashboard")
                     current_screen = DashboardScreen(renderer, font)
                 elif result == "SWITCH_TO_SETTINGS":

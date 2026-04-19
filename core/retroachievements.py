@@ -395,3 +395,34 @@ def download_badge(badge_name, is_locked=False):
     except Exception as e:
         print(f"[ERROR] download_badge failed ({url}): {e}")
     return None
+
+def download_game_icon(image_url, display_name):
+    """
+    Downloads a game icon image if it doesn't exist locally.
+    Returns the local path.
+    """
+    if not image_url: return None
+    
+    # Ensure URL formatting
+    if not image_url.startswith('/'):
+        image_url = '/' + image_url
+        
+    local_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'game_icons', f"{display_name}.png")
+    
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    
+    if os.path.exists(local_path):
+        return local_path
+        
+    url = f"https://media.retroachievements.org{image_url}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                with open(local_path, 'wb') as f:
+                    f.write(response.read())
+                return local_path
+    except Exception as e:
+        print(f"[ERROR] download_game_icon failed ({url}): {e}")
+    return None

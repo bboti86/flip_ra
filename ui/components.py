@@ -52,6 +52,33 @@ def render_text(renderer, font, text, x, y, fg_color, center=False):
 
     sdl2.SDL_FreeSurface(surface)
 
+def render_text_shadow(renderer, font, text, x, y, fg_color, shadow_color=(0,0,0), center=False, shadow_offset=2):
+    """Renders text with a drop-shadow for a premium retro feel."""
+    if not text: return
+    # Draw shadow first
+    render_text(renderer, font, text, x + shadow_offset, y + shadow_offset, shadow_color, center)
+    # Draw main text
+    render_text(renderer, font, text, x, y, fg_color, center)
+
+def draw_panel(renderer, x, y, w, h, bg_color=(20, 20, 30, 240), border_color=(60, 60, 80)):
+    """Draws a premium dark panel with a subtle border."""
+    # Main background (supports alpha if blend mode is set)
+    renderer.fill((x, y, w, h), sdl2.ext.Color(*bg_color))
+    # Border
+    renderer.draw_rect((x, y, w, h), sdl2.ext.Color(*border_color))
+    # Inner highlight to give depth
+    renderer.draw_rect((x+1, y+1, w-2, h-2), sdl2.ext.Color(40, 40, 50, 100))
+
+def draw_selector(renderer, x, y, w, h, color=(0, 200, 255)):
+    """Draws a glowing retro selector box around an item."""
+    # Outer glow (thin, lower alpha)
+    renderer.draw_rect((x-2, y-2, w+4, h+4), sdl2.ext.Color(color[0], color[1], color[2], 100))
+    renderer.draw_rect((x-1, y-1, w+2, h+2), sdl2.ext.Color(color[0], color[1], color[2], 180))
+    # Inner bright box
+    renderer.draw_rect((x, y, w, h), sdl2.ext.Color(*color))
+    # Fill slightly to make it pop
+    renderer.fill((x, y, w, h), sdl2.ext.Color(color[0], color[1], color[2], 40))
+
 class TextInput:
     def __init__(self, x, y, width, height, font, bg_color=(50,50,50), fg_color=(255,255,255), is_password=False):
         self.rect = sdl2.SDL_Rect(int(x), int(y), int(width), int(height))

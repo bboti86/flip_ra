@@ -93,4 +93,16 @@ Here is a feasibility estimate for bringing those awesome concepts to life nativ
 *   **Alternative:** Extremely feasible if we just display it as a sorted text list or standard bar charts (e.g. `SNES: 5000pts | GBA: 3000pts`).
 
 ### **Verdict for Next Steps**
-If you want to add a 4th tab to the app (e.g., **"Profile Stats"**), I would highly recommend combining **#2 (Rank Gauge)**, **#4 (Purity Bar)**, and **#6 (Rarest Unlock Text)**. We can build all three of those onto a single screen with almost zero performance hit to your device!
+With the successful implementation of the async background syncing engine and local `tar` image caching, the following features are now highly feasible and prioritized for future development:
+
+#### **A. The Mastery Wall 🏆**
+*   **Feasibility: Very High** (Now that caching is solved)
+*   **How:** A dedicated visual grid on the Stats screen that fetches official Game Icons for games where `NumAwarded == NumAchievements`. Displays a beautiful gallery of 100% completed games.
+
+#### **B. The Backlog Tracker (Closest to Mastery) 📈**
+*   **Feasibility: High**
+*   **How:** Leverage the background syncing engine to silently scan games and list the ones where completion is at 90%+ at the bottom of the Stats screen, motivating the user to finish them.
+
+#### **C. Console Dominance (Top Systems) 🎮**
+*   **Feasibility: Very High**
+*   **How:** Tally up the `ConsoleName` strings from the User Summary data and generate a ranked list of top systems on the Stats screen.

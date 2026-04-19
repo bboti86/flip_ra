@@ -4,7 +4,7 @@ import json
 import threading
 import os
 
-from .components import TextInput, OnScreenKeyboard, render_text
+from .components import TextInput, OnScreenKeyboard, render_text, render_text_shadow, draw_panel, draw_selector
 from core import input, retroachievements
 
 class AuthScreen:
@@ -144,11 +144,8 @@ class AuthScreen:
             elif action == input.SELECT:
                 self.verify_and_save()
             elif action == input.CANCEL:
-                # Quit application
-                sdl2.SDL_EventState(sdl2.SDL_QUIT, sdl2.SDL_ENABLE)
-                ev = sdl2.SDL_Event()
-                ev.type = sdl2.SDL_QUIT
-                sdl2.SDL_PushEvent(ev)
+                # Return to Welcome Menu instead of quitting
+                return "SWITCH_TO_WELCOME"
         else:
             osk_result = self.osk.handle_action(action)
             if osk_result == "BACK":
@@ -161,22 +158,46 @@ class AuthScreen:
                 active_input.text += osk_result
 
     def draw(self):
-        render_text(self.renderer, self.font, "RetroAchievements Authenticator", 320, 20, (255, 255, 255), center=True)
+        # 1. Background
+        self.renderer.fill((0, 0, 640, 480), sdl2.ext.Color(15, 15, 20))
         
-        c_user = (255, 255, 100) if self.auth_index == 0 else (200, 200, 200)
-        render_text(self.renderer, self.font, "Username:", 100, 70, c_user)
+        # 2. Header Frame
+        draw_panel(self.renderer, 40, 10, 560, 40, bg_color=(30, 25, 40, 255), border_color=(255, 215, 0))
+        render_text_shadow(self.renderer, self.font, "RetroAchievements Authenticator", 320, 20, (255, 215, 0), shadow_offset=2, center=True)
+        
+        # 3. Main Form Panel
+        draw_panel(self.renderer, 60, 60, 520, 240, bg_color=(20, 20, 30, 230), border_color=(80, 80, 100))
+        
+        c_user = (0, 200, 255) if self.auth_index == 0 else (180, 180, 180)
+        render_text_shadow(self.renderer, self.font, "Username:", 80, 70, c_user, shadow_offset=1)
+        self.input_user.rect.x = 80
+        self.input_user.rect.y = 100
+        self.input_user.rect.w = 480
+        if self.auth_index == 0: draw_selector(self.renderer, 78, 98, 484, 44, color=c_user)
         self.input_user.draw(self.renderer)
         
-        c_pwd = (255, 255, 100) if self.auth_index == 1 else (200, 200, 200)
-        render_text(self.renderer, self.font, "Password:", 100, 150, c_pwd)
+        c_pwd = (0, 200, 255) if self.auth_index == 1 else (180, 180, 180)
+        render_text_shadow(self.renderer, self.font, "Password:", 80, 150, c_pwd, shadow_offset=1)
+        self.input_pwd.rect.x = 80
+        self.input_pwd.rect.y = 180
+        self.input_pwd.rect.w = 480
+        if self.auth_index == 1: draw_selector(self.renderer, 78, 178, 484, 44, color=c_pwd)
         self.input_pwd.draw(self.renderer)
 
-        c_key = (255, 255, 100) if self.auth_index == 2 else (200, 200, 200)
-        render_text(self.renderer, self.font, "Web API Key:", 100, 230, c_key)
+        c_key = (0, 200, 255) if self.auth_index == 2 else (180, 180, 180)
+        render_text_shadow(self.renderer, self.font, "Web API Key:", 80, 230, c_key, shadow_offset=1)
+        self.input_key.rect.x = 80
+        self.input_key.rect.y = 260
+        self.input_key.rect.w = 480
+        if self.auth_index == 2: draw_selector(self.renderer, 78, 258, 484, 44, color=c_key)
         self.input_key.draw(self.renderer)
 
         if self.input_user.active or self.input_pwd.active or self.input_key.active:
             self.osk.draw(self.renderer)
         else:
-            render_text(self.renderer, self.font, self.status_message, 320, 320, self.status_color, center=True)
-            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Type | Start: Verify", 320, 450, (150, 150, 150), center=True)
+            # Status Panel
+            draw_panel(self.renderer, 40, 310, 560, 50, bg_color=(20, 20, 30, 255), border_color=(100, 100, 100))
+            render_text_shadow(self.renderer, self.font, self.status_message, 320, 325, self.status_color, shadow_offset=1, center=True)
+            
+            # Footer
+            render_text_shadow(self.renderer, self.font, "D-Pad: Select | A: Type | Start: Verify | B: Menu", 320, 440, (150, 150, 150), shadow_offset=1, center=True)

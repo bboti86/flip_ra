@@ -59,14 +59,26 @@ def deploy():
             
             # Grab cached badges to preserve them across pushes
             try:
-                if not os.path.exists("assets/badges"):
-                    os.makedirs("assets/badges")
-                scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/badges", local_path="assets", recursive=True)
-                print(f"   {BLUE}-> 🖼️  Preserved badges cache from device{RESET}")
-                # Ensure they are in the deploy folder for the next step
-                os.system(f"cp -r assets/badges deploy/{FOLDER_NAME}/assets/")
-            except:
-                print(f"   {YELLOW}-> ⚠️  No badges cache found to preserve.{RESET}")
+                # Pack badges on device
+                stdin, stdout, stderr = ssh.exec_command(f"cd {REMOTE_APP_DIR}/{FOLDER_NAME}/assets && tar c -f badges.tar badges")
+                if stdout.channel.recv_exit_status() == 0:
+                    scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/badges.tar", local_path="badges.tar")
+                    os.system("tar xf badges.tar -C deploy/RA_Manager/assets/ && rm badges.tar")
+                    print(f"   {BLUE}-> 🖼️  Preserved badges cache from device{RESET}")
+                else:
+                    print(f"   {YELLOW}-> ⚠️  No badges cache found to preserve.{RESET}")
+            except Exception as e:
+                print(f"   {YELLOW}-> ⚠️  Could not fetch badges: {e}{RESET}")
+                
+            try:
+                # Pack game_icons on device
+                stdin, stdout, stderr = ssh.exec_command(f"cd {REMOTE_APP_DIR}/{FOLDER_NAME}/assets && tar c -f game_icons.tar game_icons")
+                if stdout.channel.recv_exit_status() == 0:
+                    scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/game_icons.tar", local_path="game_icons.tar")
+                    os.system("tar xf game_icons.tar -C deploy/RA_Manager/assets/ && rm game_icons.tar")
+                    print(f"   {BLUE}-> 🖼️  Preserved game_icons cache from device{RESET}")
+            except Exception as e:
+                pass
 
             try:
                 scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/settings.json", local_path="settings.json")
