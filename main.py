@@ -77,11 +77,17 @@ def main():
 
     font = sdl2.sdlttf.TTF_OpenFont(font_path.encode('utf-8'), 20)
     
-    # Initialize current screen
+    # Initialize current_screen and timing
     current_screen = AuthScreen(renderer, font)
+    last_time = sdl2.SDL_GetTicks()
     
     running = True
     while running:
+        # Timing
+        now = sdl2.SDL_GetTicks()
+        dt = (now - last_time) / 1000.0  # seconds
+        last_time = now
+
         events = sdl2.ext.get_events()
         for event in events:
             if event.type == sdl2.SDL_QUIT:
@@ -104,6 +110,10 @@ def main():
                 elif result == "SWITCH_TO_AUTH":
                     print("[INFO] Switching to Auth")
                     current_screen = AuthScreen(renderer, font)
+
+        # Update and Draw
+        if hasattr(current_screen, 'update'):
+            current_screen.update(dt)
 
         renderer.clear(sdl2.ext.Color(20, 20, 20))
         current_screen.draw()

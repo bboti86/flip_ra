@@ -66,6 +66,12 @@ class GamesScreen:
         self.hltb_data = None
         self.sort_mode = "DEFAULT" # DISABLED: "SHORTEST"
         self.load_favorites()
+        
+        # Navigation Repeat Logic
+        self.repeat_timers = {} # action -> elapsed_time
+        self.REPEAT_DELAY = 0.4
+        self.REPEAT_INTERVAL = 0.08
+        self.PAGE_REPEAT_INTERVAL = 0.15
 
     def load_config(self):
         try:
@@ -213,18 +219,70 @@ class GamesScreen:
             
         threading.Thread(target=_task, daemon=True).start()
 
+    def update(self, dt):
+        if self.state not in [0, 3]:
+            return
+
+        for action in [input.UP, input.DOWN, input.PAGE_UP, input.PAGE_DOWN]:
+            if input.is_pressed(action):
+                if action not in self.repeat_timers:
+                    # Initial press already handled by handle_event
+                    self.repeat_timers[action] = 0.0
+                else:
+                    self.repeat_timers[action] += dt
+                    
+                    delay = self.REPEAT_DELAY
+                    interval = self.PAGE_REPEAT_INTERVAL if "PAGE" in action else self.REPEAT_INTERVAL
+                    
+                    if self.repeat_timers[action] >= delay:
+                        # Perform repeated navigation
+                        self._navigate(action)
+                        # Reset to delay so it triggers again after 'interval'
+                        self.repeat_timers[action] = delay - interval
+            else:
+                # Button released
+                if action in self.repeat_timers:
+                    del self.repeat_timers[action]
+
+    def _navigate(self, action):
+        if self.state == 0: # Selection
+            count = len(self.favorites)
+            if count == 0: return
+            
+            if action == input.UP:
+                self.selected_game_idx = (self.selected_game_idx - 1) % count
+            elif action == input.DOWN:
+                self.selected_game_idx = (self.selected_game_idx + 1) % count
+            elif action == input.PAGE_UP:
+                self.selected_game_idx = max(0, self.selected_game_idx - 8)
+            elif action == input.PAGE_DOWN:
+                self.selected_game_idx = min(count - 1, self.selected_game_idx + 8)
+
+        elif self.state == 3: # Achievement Viewer
+            count = len(self.achievements)
+            if count == 0: return
+            max_scroll = max(0, count - 5)
+            
+            if action == input.UP:
+                self.scroll_index = max(0, self.scroll_index - 1)
+            elif action == input.DOWN:
+                self.scroll_index = min(max_scroll, self.scroll_index + 1)
+            elif action == input.PAGE_UP:
+                self.scroll_index = max(0, self.scroll_index - 5)
+            elif action == input.PAGE_DOWN:
+                self.scroll_index = min(max_scroll, self.scroll_index + 5)
+
     def handle_event(self, event):
         action = input.map_event(event)
+        if not action: return None
         
         if self.state == 0: # Selection
             if action == input.L_BUMPER:
                 return "SWITCH_TO_SETTINGS"
             elif action == input.R_BUMPER:
                 return "SWITCH_TO_STATS"
-            elif action == input.UP:
-                self.selected_game_idx = max(0, self.selected_game_idx - 1)
-            elif action == input.DOWN:
-                self.selected_game_idx = min(len(self.favorites) - 1, self.selected_game_idx + 1)
+            elif action in [input.UP, input.DOWN, input.PAGE_UP, input.PAGE_DOWN]:
+                self._navigate(action)
             elif action == input.ACCEPT:
                 if self.favorites:
                     self.target_game = self.favorites[self.selected_game_idx]
@@ -232,18 +290,11 @@ class GamesScreen:
             elif action == input.CANCEL:
                 return "SWITCH_TO_AUTH"
             elif action == input.SELECT:
-                # self.sort_mode = "SHORTEST" if self.sort_mode == "DEFAULT" else "DEFAULT"
-                # self.apply_sorting()
-                # self.selected_game_idx = 0
                 pass
                 
         elif self.state == 3: # Achievement Viewer
-            if action == input.UP:
-                self.scroll_index = max(0, self.scroll_index - 1)
-            elif action == input.DOWN:
-                if self.achievements:
-                    self.scroll_index = min(len(self.achievements) - 5, self.scroll_index + 1)
-                    if self.scroll_index < 0: self.scroll_index = 0
+            if action in [input.UP, input.DOWN, input.PAGE_UP, input.PAGE_DOWN]:
+                self._navigate(action)
             elif action == input.CANCEL:
                 self.state = 0
                 self.scroll_index = 0
@@ -293,7 +344,7 @@ class GamesScreen:
 
             # sort_hint = "Default" if self.sort_mode == "DEFAULT" else "Shortest (HLTB)"
             # render_text(self.renderer, self.font, f"Sort: {sort_hint} (SELECT to toggle)", 320, 430, (150, 150, 255), center=True)
-            render_text(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Achievements", 320, 450, (150, 150, 150), center=True)
+            render_text(self.renderer, self.font, "L1/R1: Tab | L2/R2: Page | D-Pad: Select | A: Achievements", 320, 450, (150, 150, 150), center=True)
 
         elif self.state == 1: # Loading
             render_text(self.renderer, self.font, "Establishing Link...", 320, 220, (200, 200, 100), center=True)
@@ -349,4 +400,4 @@ class GamesScreen:
                 points = ach.get("Points", 0)
                 render_text(self.renderer, self.font, f"{points} pts", 540, y, (150, 255, 150))
 
-            render_text(self.renderer, self.font, "D-Pad: Scroll | B: Back to Games", 320, 450, (150, 150, 150), center=True)
+            render_text(self.renderer, self.font, "L2/R2: Page | D-Pad: Scroll | B: Back to Games", 320, 450, (150, 150, 150), center=True)

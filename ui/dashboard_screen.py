@@ -32,6 +32,14 @@ class DashboardScreen:
         self.load_favorites()
 
         self.fetch_data()
+        
+        # Navigation Repeat Logic
+        self.repeat_timers = {}
+        self.REPEAT_DELAY = 0.4
+        self.REPEAT_INTERVAL = 0.04 # Faster for smooth scroll
+        self.PAGE_REPEAT_INTERVAL = 0.1
+        self.SCROLL_STEP = 20
+        self.PAGE_STEP = 180
 
     def load_config(self):
         try:
@@ -59,32 +67,66 @@ class DashboardScreen:
             except Exception as e:
                 self.error_msg = f"Failed: {str(e)}"
             
-            # 2. Calculate Backlog Hours (Async) - DISABLED
-            # total = 0
-            # for g in self.favorites:
-            #     data = hltb.get_game_times(g["display_name"])
-            #     if data:
-            #         total += data["main"]
-            # self.backlog_hours = total
-            
             self.is_loading = False
             
         threading.Thread(target=_task, daemon=True).start()
 
+    def update(self, dt):
+        if self.is_loading or self.error_msg:
+            return
+
+        for action in [input.UP, input.DOWN, input.PAGE_UP, input.PAGE_DOWN]:
+            if input.is_pressed(action):
+                if action not in self.repeat_timers:
+                    self.repeat_timers[action] = 0.0
+                else:
+                    self.repeat_timers[action] += dt
+                    
+                    delay = self.REPEAT_DELAY
+                    interval = self.PAGE_REPEAT_INTERVAL if "PAGE" in action else self.REPEAT_INTERVAL
+                    
+                    if self.repeat_timers[action] >= delay:
+                        self._navigate(action)
+                        self.repeat_timers[action] = delay - interval
+            else:
+                if action in self.repeat_timers:
+                    del self.repeat_timers[action]
+
+    def _navigate(self, action):
+        if not self.achievements: return
+        
+        # Calculate max scroll
+        item_height = 60
+        total_height = len(self.achievements) * item_height
+        view_height = 340 # roughly 440 - 100
+        max_scroll = max(0, total_height - view_height + 20)
+
+        if action == input.UP:
+            if self.scroll_y <= 0: # Wrap around
+                self.scroll_y = max_scroll
+            else:
+                self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
+        elif action == input.DOWN:
+            if self.scroll_y >= max_scroll: # Wrap around
+                self.scroll_y = 0
+            else:
+                self.scroll_y = min(max_scroll, self.scroll_y + self.SCROLL_STEP)
+        elif action == input.PAGE_UP:
+            self.scroll_y = max(0, self.scroll_y - self.PAGE_STEP)
+        elif action == input.PAGE_DOWN:
+            self.scroll_y = min(max_scroll, self.scroll_y + self.PAGE_STEP)
+
     def handle_event(self, event):
         action = input.map_event(event)
+        if not action: return None
 
         if action == input.L_BUMPER:
             return "SWITCH_TO_SETTINGS"
         elif action == input.R_BUMPER:
             return "SWITCH_TO_GAMES"
-
-        if action == input.UP:
-            self.scroll_y = max(0, self.scroll_y - 20)
-        elif action == input.DOWN:
-            self.scroll_y += 20
+        elif action in [input.UP, input.DOWN, input.PAGE_UP, input.PAGE_DOWN]:
+            self._navigate(action)
         elif action == input.CANCEL:
-            # Signal back to go to Auth
             return "SWITCH_TO_AUTH"
         return None
 

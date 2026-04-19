@@ -22,6 +22,10 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
     *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
     *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs from your device for easy remote debugging.
 *   **⚡ Smart Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally for 1 hour.
+*   **🏎️ Fluid Navigation**: Experience smooth, high-speed browsing of large game lists:
+    *   **Continuous Scrolling**: Hold Up/Down to scroll automatically after a short delay.
+    *   **Wrap-around Logic**: Seamlessly cycle from the top to the bottom of lists (and vice versa).
+    *   **Page Jumps**: Use L2/R2 to jump whole pages at a time in long lists.
 
 ---
 
@@ -32,10 +36,12 @@ The app uses standard SDL GameController mappings natively compatible with the M
 | Action | Control | Description |
 | :--- | :--- | :--- |
 | **Cycle Tabs** | `L1` / `R1` | Seamlessly cycle between Auth ↔ Settings ↔ Dashboard ↔ Stats. |
-| **Navigate** | `D-Pad` | Move between input fields or scroll through your lists. |
-| **Select / Toggle** | `A` Button | Open the on-screen keyboard for text fields, or toggle YES/NO boolean preferences in Settings. |
-| **Go Back** | `B` Button | Cancel keyboard input or return to the previous screen. |
-| **Save / Sync** | `Start` | Save preferences and push configurations to RetroArch and PPSSPP. |
+| **Navigate** | `D-Pad` | Move between items. **Hold** for continuous scrolling. |
+| **Page Up / Down** | `L2` / `R2` | Scroll through entire pages of achievements or games. |
+| **Wrap-around** | `D-Pad UP/DOWN` | Cycling from the top of a list jumps to the bottom. |
+| **Select / Toggle** | `A` Button | Open keyboard for text fields, or toggle YES/NO booleans. |
+| **Go Back** | `B` Button | Cancel input or return to the previous screen. |
+| **Save / Sync** | `Start` | Save preferences and push configurations. |
 
 ---
 

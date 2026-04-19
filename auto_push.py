@@ -80,7 +80,8 @@ def deploy():
 
     print(f"{BOLD}{CYAN}4) 🧹 Removing old revision from SpruceOS...{RESET}")
     target_folder = f"{REMOTE_APP_DIR}/{FOLDER_NAME}"
-    ssh.exec_command(f"rm -rf '{target_folder}'")
+    stdin, stdout, stderr = ssh.exec_command(f"rm -rf '{target_folder}'")
+    stdout.channel.recv_exit_status() # Wait for completion
     
     print(f"{BOLD}{CYAN}5) 🚀 Pushing new application files via secure copy...{RESET}")
     try:
