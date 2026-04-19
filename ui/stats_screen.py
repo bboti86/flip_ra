@@ -22,6 +22,7 @@ class StatsScreen:
         self.completed_games = []
         self.top_consoles = []
         self.backlog_games = []
+        self.mastered_games = []
         self.is_loading = True
         self.error_msg = None
         self.scroll_y = 0
@@ -63,14 +64,26 @@ class StatsScreen:
                 # Sort backlog by highest completion first
                 self.backlog_games = sorted(backlog, key=lambda x: float(x.get("PctWon", 0)), reverse=True)[:5]
                 
-                # Start background download of the Crown Jewel badge
-                def _download_rarest_badge():
+                # Identify Mastered Games (100% completion)
+                self.mastered_games = [g for g in self.completed_games if float(g.get("PctWon", 0)) >= 1.0]
+                
+                # Start background download of badges and icons
+                def _background_assets():
+                    # 1. Crown Jewel
                     rarest = self.stats.get("HighestRatioAch")
                     if rarest:
                         bname = rarest.get("BadgeName")
                         if bname:
                             retroachievements.download_badge(bname)
-                threading.Thread(target=_download_rarest_badge, daemon=True).start()
+                    
+                    # 2. Mastery Wall Icons
+                    for g in self.mastered_games:
+                        icon_url = g.get("ImageIcon")
+                        game_id = g.get("GameID")
+                        if icon_url and game_id:
+                            retroachievements.download_game_icon(icon_url, f"game_{game_id}")
+                
+                threading.Thread(target=_background_assets, daemon=True).start()
                 
             except Exception as e:
                 self.error_msg = f"Failed to fetch stats: {e}"
@@ -88,7 +101,7 @@ class StatsScreen:
         elif action == input.UP:
             self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(900, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for Top 5 backlog
+            self.scroll_y = min(1200, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for Mastery Wall
         elif action == input.CANCEL:
             return "SWITCH_TO_WELCOME"
         return None
@@ -147,8 +160,41 @@ class StatsScreen:
         self._draw_bar(80, y_offset + 60, 480, 25, purity_pct, (255, 215, 0), (140, 140, 140))
         self.renderer.draw_rect((79, y_offset + 59, 482, 27), sdl2.ext.Color(80, 80, 100)) # Bar border
         
-        # 3. The Crown Jewel
+        # 2.5 Mastery Wall (Badges for 100% games)
         y_offset += 110
+        render_text_shadow(self.renderer, self.font, "Mastery Wall (100%):", 80, y_offset, (255, 215, 0), shadow_offset=1)
+        y_offset += 35
+        
+        if self.mastered_games:
+            grid_x = 80
+            grid_y = y_offset
+            icons_per_row = 6
+            icon_size = 64
+            spacing = 10
+            
+            for i, g in enumerate(self.mastered_games):
+                game_id = g.get("GameID")
+                local_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'game_icons', f"game_{game_id}.png")
+                
+                # Draw icon frame
+                frame_rect = (grid_x + (i % icons_per_row) * (icon_size + spacing), 
+                            grid_y + (i // icons_per_row) * (icon_size + spacing), 
+                            icon_size, icon_size)
+                self.renderer.draw_rect(frame_rect, sdl2.ext.Color(80, 80, 100))
+                
+                if os.path.exists(local_path):
+                    draw_image(self.renderer, local_path, frame_rect[0] + 2, frame_rect[1] + 2, icon_size - 4, icon_size - 4)
+                
+                # Move y_offset down based on how many rows we drew
+                if i == len(self.mastered_games) - 1:
+                    rows = (i // icons_per_row) + 1
+                    y_offset += rows * (icon_size + spacing)
+        else:
+            render_text_shadow(self.renderer, self.font, "No games mastered yet.", 80, y_offset, (150, 150, 150), shadow_offset=1)
+            y_offset += 30
+
+        # 3. The Crown Jewel
+        y_offset += 20
         rarest = self.stats.get("HighestRatioAch")
         render_text_shadow(self.renderer, self.font, "Recent Crown Jewel:", 80, y_offset, (255, 50, 150), shadow_offset=1)
         if rarest:
