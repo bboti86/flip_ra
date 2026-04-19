@@ -32,7 +32,7 @@ def draw_image(renderer, path, x, y, w=None, h=None):
     rect = sdl2.SDL_Rect(int(x), int(y), int(w), int(h))
     sdl2.SDL_RenderCopy(renderer.sdlrenderer, texture, None, rect)
 
-def render_text(renderer, font, text, x, y, fg_color, center=False):
+def render_text(renderer, font, text, x, y, fg_color, center=False, right=False):
     if not text:
         return None
     
@@ -46,19 +46,21 @@ def render_text(renderer, font, text, x, y, fg_color, center=False):
         w, h = surface.contents.w, surface.contents.h
         if center:
             x = x - w // 2
+        elif right:
+            x = x - w
         rect = sdl2.SDL_Rect(int(x), int(y), w, h)
         sdl2.SDL_RenderCopy(renderer.sdlrenderer, texture, None, rect)
         sdl2.SDL_DestroyTexture(texture)
 
     sdl2.SDL_FreeSurface(surface)
 
-def render_text_shadow(renderer, font, text, x, y, fg_color, shadow_color=(0,0,0), center=False, shadow_offset=2):
+def render_text_shadow(renderer, font, text, x, y, fg_color, shadow_color=(0,0,0), center=False, right=False, shadow_offset=2):
     """Renders text with a drop-shadow for a premium retro feel."""
     if not text: return
     # Draw shadow first
-    render_text(renderer, font, text, x + shadow_offset, y + shadow_offset, shadow_color, center)
+    render_text(renderer, font, text, x + shadow_offset, y + shadow_offset, shadow_color, center, right)
     # Draw main text
-    render_text(renderer, font, text, x, y, fg_color, center)
+    render_text(renderer, font, text, x, y, fg_color, center, right)
 
 def draw_panel(renderer, x, y, w, h, bg_color=(20, 20, 30, 240), border_color=(60, 60, 80)):
     """Draws a premium dark panel with a subtle border."""

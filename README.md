@@ -20,6 +20,7 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
     *   **Console Dominance**: A ranked breakdown of your Top 5 systems, visualizing both games played and achievements earned via dual bar charts.
     *   **Backlog Tracker**: Automatically identifies games you've started but haven't mastered yet (10% to 99% completion), sorted by closest to mastery.
     *   **Mastery Wall**: A visual "Hall of Fame" grid displaying official game icons for every game you have 100% mastered.
+    *   **Completionist Rank**: A custom skill-based title (e.g., Novice Hunter, Retro God) calculated from your overall mastery rate.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
     *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
@@ -96,6 +97,7 @@ Directly reads your SpruceOS `pyui-favorites.json` and connects them to RetroAch
 ### 5. Profile Stats (StatsScreen)
 The gamification layer. Generates custom tracking bars utilizing mathematical calculations on the raw API data to visualize your rank progression, "purity" ratio, and your crowning achievement. Features a scrollable layout including:
 - **Progression Gauge**: Distance to your next global rank milestone.
+- **Completionist Rank**: Skill title based on your mastery rate.
 - **Hardcore Purity**: Your ratio of Hardcore vs. Softcore points.
 - **Mastery Wall**: A grid of icons for your 100% mastered games.
 - **Crown Jewel**: Your rarest recent achievement with badge preview.
