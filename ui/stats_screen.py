@@ -115,11 +115,11 @@ class StatsScreen:
         elif action == input.UP:
             self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(1200, self.scroll_y + self.SCROLL_STEP)
+            self.scroll_y = min(self.max_scroll_y, self.scroll_y + self.SCROLL_STEP)
         elif action == input.PAGE_UP:
             self.scroll_y = max(0, self.scroll_y - 300)
         elif action == input.PAGE_DOWN:
-            self.scroll_y = min(1200, self.scroll_y + 300)
+            self.scroll_y = min(self.max_scroll_y, self.scroll_y + 300)
         elif action == input.CANCEL:
             return "SWITCH_TO_WELCOME"
         return None
