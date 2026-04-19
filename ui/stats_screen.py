@@ -28,6 +28,7 @@ class StatsScreen:
         self.is_loading = True
         self.error_msg = None
         self.scroll_y = 0
+        self.max_scroll_y = 0
         self.SCROLL_STEP = 30
         
         self.fetch_data()
@@ -114,10 +115,23 @@ class StatsScreen:
         elif action == input.UP:
             self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(1200, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for Mastery Wall
+            self.scroll_y = min(1200, self.scroll_y + self.SCROLL_STEP)
+        elif action == input.PAGE_UP:
+            self.scroll_y = max(0, self.scroll_y - 300)
+        elif action == input.PAGE_DOWN:
+            self.scroll_y = min(1200, self.scroll_y + 300)
         elif action == input.CANCEL:
             return "SWITCH_TO_WELCOME"
         return None
+
+    def update(self, dt):
+        if self.is_loading or self.error_msg:
+            return
+            
+        if input.is_pressed(input.UP):
+            self.scroll_y = max(0, self.scroll_y - int(400 * dt))
+        elif input.is_pressed(input.DOWN):
+            self.scroll_y = min(self.max_scroll_y, self.scroll_y + int(400 * dt))
 
     def _draw_bar(self, x, y, w, h, fill_pct, fill_color, bg_color):
         fill_pct = max(0.0, min(1.0, fill_pct))
@@ -282,7 +296,11 @@ class StatsScreen:
             render_text_shadow(self.renderer, self.font, "No games near mastery.", 80, y_offset, (150, 150, 150), shadow_offset=1)
             y_offset += 30
 
+        # Calculate dynamic scroll limit based on final rendered content height
+        total_content_height = (y_offset + self.scroll_y) - 80
+        self.max_scroll_y = max(0, total_content_height - 366 + 40) # 366 is clip height, 40 is padding
+
         # Disable Clipping
         sdl2.SDL_RenderSetClipRect(self.renderer.sdlrenderer, None)
 
-        render_text_shadow(self.renderer, self.font, "L1/R1: Tab | B: Menu", 320, 450, (150, 150, 150), shadow_offset=1, center=True)
+        render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Scroll | L2/R2: Page | B: Menu", 320, 450, (150, 150, 150), shadow_offset=1, center=True)
