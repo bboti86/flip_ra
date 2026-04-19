@@ -10,8 +10,6 @@ assets/badges/
 assets/game_icons/
 badges.tar
 game_icons.tar
-old_icon.png
-config.json
 
 # Python Cache
 __pycache__/
