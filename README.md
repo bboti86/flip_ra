@@ -18,6 +18,7 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
     *   **Purity Meter**: A Gold/Silver ratio bar showing your Hardcore vs. Softcore points split.
     *   **Crown Jewel**: Automatically highlights your single rarest recent achievement based on `RetroRatio` rarity.
     *   **Console Dominance**: A ranked breakdown of your Top 3 systems, visualizing both games played and achievements earned via dual bar charts.
+    *   **Backlog Tracker**: Automatically identifies games you've started but haven't mastered yet (10% to 99% completion), sorted by closest to mastery.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
     *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
@@ -97,6 +98,7 @@ The gamification layer. Generates custom tracking bars utilizing mathematical ca
 - **Hardcore Purity**: Your ratio of Hardcore vs. Softcore points.
 - **Crown Jewel**: Your rarest recent achievement with badge preview.
 - **Console Dominance**: Dual-bar charts for your top 3 systems (Games Played vs. Achievements Earned).
+- **Backlog Tracker**: Your top 3 games closest to mastery (10%+ completion).
 
 ---
 
