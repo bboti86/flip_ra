@@ -23,6 +23,8 @@ class StatsScreen:
         self.top_consoles = []
         self.backlog_games = []
         self.mastered_games = []
+        self.completionist_pct = 0
+        self.completionist_rank = "Novice Hunter"
         self.is_loading = True
         self.error_msg = None
         self.scroll_y = 0
@@ -66,6 +68,17 @@ class StatsScreen:
                 
                 # Identify Mastered Games (100% completion)
                 self.mastered_games = [g for g in self.completed_games if float(g.get("PctWon", 0)) >= 1.0]
+                
+                # Calculate Completionist Rank
+                total_games = len(self.completed_games)
+                if total_games > 0:
+                    self.completionist_pct = (len(self.mastered_games) / total_games) * 100
+                    if self.completionist_pct >= 75: self.completionist_rank = "Retro God"
+                    elif self.completionist_pct >= 50: self.completionist_rank = "Master Hunter"
+                    elif self.completionist_pct >= 25: self.completionist_rank = "Elite Collector"
+                    elif self.completionist_pct >= 10: self.completionist_rank = "Veteran Hunter"
+                    elif self.completionist_pct >= 5: self.completionist_rank = "Rising Star"
+                    else: self.completionist_rank = "Novice Hunter"
                 
                 # Start background download of badges and icons
                 def _background_assets():
@@ -156,9 +169,17 @@ class StatsScreen:
         purity_pct = hc_pts / total_base if total_base > 0 else (1.0 if hc_pts > 0 else 0)
         
         render_text_shadow(self.renderer, self.font, "Hardcore Purity:", 80, y_offset, (255, 215, 0), shadow_offset=1)
+        
+        # Completionist Rank (Right Aligned)
+        rank_color = (255, 255, 100) if self.completionist_pct > 25 else (200, 200, 200)
+        render_text_shadow(self.renderer, self.font, f"Rank: {self.completionist_rank}", 560, y_offset, rank_color, shadow_offset=1, right=True)
+        
         render_text_shadow(self.renderer, self.font, f"{int(purity_pct * 100)}% ({hc_pts} HC / {sc_pts} SC)", 80, y_offset + 30, (200, 200, 200), shadow_offset=1)
         self._draw_bar(80, y_offset + 60, 480, 25, purity_pct, (255, 215, 0), (140, 140, 140))
         self.renderer.draw_rect((79, y_offset + 59, 482, 27), sdl2.ext.Color(80, 80, 100)) # Bar border
+        
+        # Mastery Percentage inside Purity bar area (centered)
+        render_text(self.renderer, self.font, f"{int(self.completionist_pct)}% Mastery Rate", 320, y_offset + 60, (0, 0, 0), center=True)
         
         # 2.5 Mastery Wall (Badges for 100% games)
         y_offset += 110
