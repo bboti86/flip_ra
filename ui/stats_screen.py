@@ -88,7 +88,7 @@ class StatsScreen:
         elif action == input.UP:
             self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(600, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for backlog
+            self.scroll_y = min(900, self.scroll_y + self.SCROLL_STEP) # Increased scroll range for Top 5 backlog
         elif action == input.CANCEL:
             return "SWITCH_TO_WELCOME"
         return None
