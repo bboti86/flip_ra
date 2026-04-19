@@ -442,8 +442,14 @@ class GamesScreen:
                     else:
                         color = (180, 180, 180)
                         
+                    is_pico8 = game.get("game_system_name") == "PICO8"
+                    pico8_icon = os.path.join(os.path.dirname(__file__), '..', 'assets', 'pico8.png')
                     icon_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'game_icons', f"{game['display_name']}.png")
-                    if os.path.exists(icon_path):
+                    
+                    if is_pico8 and os.path.exists(pico8_icon):
+                        draw_image(self.renderer, pico8_icon, 40, y, 36, 36)
+                        text_x = 85
+                    elif os.path.exists(icon_path):
                         draw_image(self.renderer, icon_path, 40, y, 36, 36)
                         text_x = 85
                     else:
@@ -452,7 +458,7 @@ class GamesScreen:
                     render_text_shadow(self.renderer, self.font, game["display_name"], text_x, y + 8, color, shadow_offset=1)
                     render_text_shadow(self.renderer, self.font, f"[{game.get('game_system_name', '??')}]", 500, y + 8, (120, 120, 120))
 
-            render_text_shadow(self.renderer, self.font, "D-Pad: Select | A: View | Start: Sync All Badges | L1/R1: Tab", 320, 445, (150, 150, 150), shadow_offset=1, center=True)
+            render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | L2/R2: Page | A: View | Start: Sync All | B: Menu", 320, 445, (150, 150, 150), shadow_offset=1, center=True)
 
         elif self.state == 1: # Loading
             draw_panel(self.renderer, 120, 180, 400, 120, bg_color=(20, 20, 30, 255), border_color=(255, 215, 0))

@@ -200,4 +200,4 @@ class AuthScreen:
             render_text_shadow(self.renderer, self.font, self.status_message, 320, 325, self.status_color, shadow_offset=1, center=True)
             
             # Footer
-            render_text_shadow(self.renderer, self.font, "D-Pad: Select | A: Type | Start: Verify | B: Menu", 320, 440, (150, 150, 150), shadow_offset=1, center=True)
+            render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Type | Start: Verify | B: Menu", 320, 440, (150, 150, 150), shadow_offset=1, center=True)
