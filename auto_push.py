@@ -28,7 +28,18 @@ def create_ssh_client(server, port, user, password):
 
 def run_local_build():
     print(f"\n{BOLD}{CYAN}1) 🛠️  Re-building deployment...{RESET}")
-    os.system("bash update_deploy.sh")
+    print(f"{BOLD}{BLUE}Cleaning old deployment...{RESET}")
+    os.system("rm -rf deploy")
+    
+    print(f"{BOLD}{BLUE}Creating new deployment directory at 'deploy/RA_Manager'...{RESET}")
+    os.system("mkdir -p deploy/RA_Manager")
+    
+    print(f"{BOLD}{BLUE}Copying application files...{RESET}")
+    os.system("cp -r core ui assets libs deploy/RA_Manager/ 2>/dev/null || true")
+    os.system("cp main.py launch.sh settings.json config.json icon.png deploy/RA_Manager/ 2>/dev/null || true")
+    
+    print(f"{BOLD}{BLUE}Cleaning up __pycache__ directories from deployment...{RESET}")
+    os.system("find deploy/RA_Manager -type d -name '__pycache__' -exec rm -r {} + 2>/dev/null || true")
 
 def deploy():
     os.system('clear')
