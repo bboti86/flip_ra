@@ -92,17 +92,30 @@ Here is a feasibility estimate for bringing those awesome concepts to life nativ
 *   **How:** Similar to the donut chart, drawing a polygon-based spider web chart natively in SDL2 requires a custom geometry rendering engine. We don't have libraries like `matplotlib` or `Chart.js` here. 
 *   **Alternative:** Extremely feasible if we just display it as a sorted text list or standard bar charts (e.g. `SNES: 5000pts | GBA: 3000pts`).
 
-### **Verdict for Next Steps**
-With the successful implementation of the async background syncing engine and local `tar` image caching, the following features are now highly feasible and prioritized for future development:
+### **Implementation Status**
 
-#### **A. The Mastery Wall 🏆**
-*   **Feasibility: Very High** (Now that caching is solved)
+The following features have been successfully implemented:
+
+*   ✅ **Progression Gauge**: Dynamic rank and point tracking.
+*   ✅ **Purity Meter**: Hardcore vs. Softcore points split visualization.
+*   ✅ **Crown Jewel**: Automatic highlighting of your rarest recent achievement with badge preview.
+*   ✅ **Console Dominance**: Ranked breakdown of Top 3 systems using dual bar charts (Games vs. Achievements).
+*   ✅ **Fluid Navigation**: Hardware-accelerated pixel scrolling and clipping for all list-heavy screens.
+
+---
+
+### **Future Roadmap Ideas**
+
+With the successful implementation of the async background syncing engine and local `tar` image caching, the following features remain highly feasible for future development:
+
+#### **1. The Mastery Wall 🏆**
+*   **Feasibility: Very High**
 *   **How:** A dedicated visual grid on the Stats screen that fetches official Game Icons for games where `NumAwarded == NumAchievements`. Displays a beautiful gallery of 100% completed games.
 
-#### **B. The Backlog Tracker (Closest to Mastery) 📈**
+#### **2. The Backlog Tracker (Closest to Mastery) 📈**
 *   **Feasibility: High**
 *   **How:** Leverage the background syncing engine to silently scan games and list the ones where completion is at 90%+ at the bottom of the Stats screen, motivating the user to finish them.
 
-#### **C. Console Dominance (Top Systems) 🎮**
-*   **Feasibility: Very High**
-*   **How:** Tally up the `ConsoleName` strings from the User Summary data and generate a ranked list of top systems on the Stats screen.
+#### **3. The "Retro Ratio" Heatmap 🔥**
+*   **Feasibility: Medium**
+*   **How:** A GitHub-style activity grid color-coded by the rarity (Retro Ratio) of achievements earned each day. Requires careful handling of the potentially large historical data payload.
