@@ -52,7 +52,7 @@ class StatsScreen:
                     consoles[cname]["achievements"] += int(g.get("NumAwarded", 0))
                 
                 # Sort consoles by games played
-                self.top_consoles = sorted(consoles.items(), key=lambda x: x[1]["games"], reverse=True)[:3]
+                self.top_consoles = sorted(consoles.items(), key=lambda x: x[1]["games"], reverse=True)[:5]
                 
                 # Identify Backlog (90% to 99% completion)
                 backlog = []
@@ -61,7 +61,7 @@ class StatsScreen:
                     if 0.1 <= pct < 1.0:
                         backlog.append(g)
                 # Sort backlog by highest completion first
-                self.backlog_games = sorted(backlog, key=lambda x: float(x.get("PctWon", 0)), reverse=True)[:3]
+                self.backlog_games = sorted(backlog, key=lambda x: float(x.get("PctWon", 0)), reverse=True)[:5]
                 
                 # Start background download of the Crown Jewel badge
                 def _download_rarest_badge():
@@ -173,7 +173,7 @@ class StatsScreen:
 
         # 4. Console Dominance
         y_offset += 130
-        render_text_shadow(self.renderer, self.font, "Console Dominance (Top 3):", 80, y_offset, (100, 255, 100), shadow_offset=1)
+        render_text_shadow(self.renderer, self.font, "Console Dominance (Top 5):", 80, y_offset, (100, 255, 100), shadow_offset=1)
         y_offset += 35
         
         if self.top_consoles:
@@ -197,7 +197,7 @@ class StatsScreen:
                 y_offset += 35
         # 5. Backlog Tracker (Closest to Mastery)
         y_offset += 15
-        render_text_shadow(self.renderer, self.font, "Backlog Tracker (10%+):", 80, y_offset, (255, 150, 50), shadow_offset=1)
+        render_text_shadow(self.renderer, self.font, "Backlog Tracker (10%+): Top 5", 80, y_offset, (255, 150, 50), shadow_offset=1)
         y_offset += 35
         
         if self.backlog_games:
