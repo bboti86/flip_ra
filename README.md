@@ -17,6 +17,7 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
     *   **Progression Gauge**: A visual bar tracking the points you need to hit your next global milestone.
     *   **Purity Meter**: A Gold/Silver ratio bar showing your Hardcore vs. Softcore points split.
     *   **Crown Jewel**: Automatically highlights your single rarest recent achievement based on `RetroRatio` rarity.
+    *   **Console Dominance**: A ranked breakdown of your Top 3 systems, visualizing both games played and achievements earned via dual bar charts.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
     *   **Log Rotation**: Keeps history for the last 3 sessions (`runtime.log`, `.1`, `.2`).
@@ -24,8 +25,8 @@ A native, lightweight, graphical management tool built in **PySDL2** for the Miy
 *   **⚡ Smart Caching & Quality of Life**: 
     *   **State Memory**: The app remembers exactly which tab you left off on and restores it instantly on next launch.
     *   **API Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally.
-*   **🏎️ Fluid Navigation**: Experience smooth, high-speed browsing of large game lists:
-    *   **Hardware Clipping**: Native PySDL2 clip rects provide buttery-smooth pixel scrolling for partially hidden list items.
+*   **🏎️ Fluid Navigation**: Experience smooth, high-speed browsing of large lists (Games, Achievements, and Stats):
+    *   **Hardware Clipping**: Native PySDL2 clip rects provide buttery-smooth pixel scrolling for partially hidden items.
     *   **Continuous Scrolling**: Hold Up/Down to scroll automatically after a short delay.
     *   **Wrap-around Logic**: Seamlessly cycle from the top to the bottom of lists (and vice versa).
     *   **Page Jumps**: Use L2/R2 to jump whole pages at a time in long lists.
@@ -91,7 +92,11 @@ Directly reads your SpruceOS `pyui-favorites.json` and connects them to RetroAch
 - **Global Badge Sync**: Features an autonomous background worker that iterates through all your favorites and batch-downloads every single missing asset to your device for offline browsing!
 
 ### 5. Profile Stats (StatsScreen)
-The gamification layer. Generates custom tracking bars utilizing mathematical calculations on the raw API data to visualize your rank progression, "purity" ratio, and your crowning achievement.
+The gamification layer. Generates custom tracking bars utilizing mathematical calculations on the raw API data to visualize your rank progression, "purity" ratio, and your crowning achievement. Features a scrollable layout including:
+- **Progression Gauge**: Distance to your next global rank milestone.
+- **Hardcore Purity**: Your ratio of Hardcore vs. Softcore points.
+- **Crown Jewel**: Your rarest recent achievement with badge preview.
+- **Console Dominance**: Dual-bar charts for your top 3 systems (Games Played vs. Achievements Earned).
 
 ---
 
