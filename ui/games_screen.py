@@ -129,7 +129,8 @@ class GamesScreen:
         def _task():
             try:
                 system_name = self.target_game.get("game_system_name", "").upper()
-                console_id = SYSTEM_MAP.get(system_name)
+                system_map = system.SystemManager.get_system_map()
+                console_id = system_map.get(system_name)
                 
                 if not console_id:
                     self.error_msg = f"System {system_name} not supported by RA."
