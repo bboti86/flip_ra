@@ -45,6 +45,10 @@ class GamesScreen:
         self.username = self.config.get("ra_username", "")
         self.api_key = self.config.get("ra_api_key", "")
         
+        self.match_cache_path = os.path.join(os.path.dirname(__file__), '..', 'match_cache.json')
+        self.match_results = {} # game_display_name -> ra_game_id (or None if failed)
+        self.load_match_cache()
+        
         # States: 0: Game Selection, 1: Loading/Matching, 2: Downloading Images, 3: Achievement Viewer
         self.state = 0
         self.favorites = []
@@ -87,6 +91,21 @@ class GamesScreen:
                 self.config = json.load(f)
         except:
             self.config = {}
+
+    def load_match_cache(self):
+        try:
+            if os.path.exists(self.match_cache_path):
+                with open(self.match_cache_path, 'r') as f:
+                    self.match_results = json.load(f)
+        except:
+            self.match_results = {}
+
+    def save_match_cache(self):
+        try:
+            with open(self.match_cache_path, 'w') as f:
+                json.dump(self.match_results, f)
+        except Exception as e:
+            print(f"[ERROR] Failed to save match cache: {e}")
 
     def load_favorites(self):
         try:
@@ -145,12 +164,16 @@ class GamesScreen:
                 
                 if not matches:
                     self.error_msg = "No matching game found on RA."
+                    self.match_results[self.target_game["display_name"]] = None
+                    self.save_match_cache()
                     self.state = 0
                     return
                 
                 matched_title = matches[0]
                 matched_game = next(g for g in game_list if g["Title"] == matched_title)
                 self.ra_game_id = matched_game["ID"]
+                self.match_results[self.target_game["display_name"]] = self.ra_game_id
+                self.save_match_cache()
                 
                 icon_url = matched_game.get("ImageIcon")
                 if icon_url:
@@ -196,10 +219,13 @@ class GamesScreen:
                 
                 titles = [g["Title"] for g in game_list]
                 matches = difflib.get_close_matches(game["display_name"], titles, n=1, cutoff=0.3)
-                if not matches: continue
+                if not matches:
+                    self.match_results[game["display_name"]] = None
+                    continue
                 
                 matched_game = next(g for g in game_list if g["Title"] == matches[0])
                 ra_game_id = matched_game["ID"]
+                self.match_results[game["display_name"]] = ra_game_id
                 
                 icon_url = matched_game.get("ImageIcon")
                 if icon_url:
@@ -229,6 +255,8 @@ class GamesScreen:
                     self.sync_download_progress += 1
                     total_dl += 1
                     time.sleep(0.05)
+            
+            self.save_match_cache()
                     
             # Done
             self.state = 0
@@ -374,6 +402,9 @@ class GamesScreen:
                     self.target_game = self.favorites[self.selected_game_idx]
                     self.start_matching()
             elif action == input.CANCEL:
+                if self.error_msg:
+                    self.error_msg = None
+                    return None
                 return "SWITCH_TO_WELCOME"
             elif action == input.START:
                 if self.favorites:
@@ -456,7 +487,13 @@ class GamesScreen:
                         text_x = 40
                         
                     render_text_shadow(self.renderer, self.font, game["display_name"], text_x, y + 8, color, shadow_offset=1)
-                    render_text_shadow(self.renderer, self.font, f"[{game.get('game_system_name', '??')}]", 500, y + 8, (120, 120, 120))
+                    
+                    # Show match status
+                    match_id = self.match_results.get(game["display_name"], "pending")
+                    if match_id is None:
+                        render_text_shadow(self.renderer, self.font, "[!]", 580, y + 8, (255, 50, 50))
+                    
+                    render_text_shadow(self.renderer, self.font, f"[{game.get('game_system_name', '??')}]", 480, y + 8, (120, 120, 120))
 
             render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | L2/R2: Page | A: View | Start: Sync All | B: Menu", 320, 445, (150, 150, 150), shadow_offset=1, center=True)
 
@@ -507,7 +544,20 @@ class GamesScreen:
                 title_color = (255, 255, 255) if is_unlocked else (150, 150, 150)
                 desc_color = (180, 180, 180) if is_unlocked else (100, 100, 100)
                 
-                render_text_shadow(self.renderer, self.font, ach.get("Title", "???"), 100, y + 5, title_color, shadow_offset=1)
+                title_text = ach.get("Title", "???")
+                # Robust check for missable type (can be int 1 or string 'missable')
+                ach_type = ach.get("Type")
+                is_missable = ach_type in [1, "missable", "Missable"]
+                
+                if is_missable:
+                    render_text_shadow(self.renderer, self.font, title_text, 100, y + 5, (255, 100, 100), shadow_offset=1)
+                    # Draw "MISSABLE" tag after the title
+                    # Approximate width: each char is ~11px at size 20
+                    offset_x = 110 + (len(title_text) * 11)
+                    render_text_shadow(self.renderer, self.font, "[MISSABLE]", offset_x, y + 5, (255, 215, 0), shadow_offset=1)
+                else:
+                    render_text_shadow(self.renderer, self.font, title_text, 100, y + 5, title_color, shadow_offset=1)
+                
                 render_text_shadow(self.renderer, self.font, ach.get("Description", ""), 100, y + 30, desc_color)
                 
                 points = ach.get("Points", 0)
