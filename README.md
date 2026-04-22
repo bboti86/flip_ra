@@ -1,11 +1,11 @@
-# 🏆 RetroAchievements Manager for SpruceOS
+# 🏆 RetroAchievements Manager for Handhelds
 
-A native, lightweight, graphical management tool built in **PySDL2** for the Miyoo Flip (and other SpruceOS devices). 
+A native, lightweight, graphical management tool built in **PySDL2** for the Miyoo Flip, Miyoo Mini, and other devices running **SpruceOS** or **OnionOS**. 
 
 This app allows you to securely manage your RetroAchievements credentials, sync deep RetroArch preferences across multiple platform cores, and track your gaming milestones directly from your handheld device—without ever needing to edit text configuration files manually.
 
 ![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Miyoo%20Flip%20%7C%20SpruceOS-brightgreen.svg)
+![Platform](https://img.shields.io/badge/platform-Miyoo%20Flip%20%7C%20SpruceOS%20%7C%20OnionOS-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ---
@@ -16,9 +16,9 @@ This app allows you to securely manage your RetroAchievements credentials, sync 
 *   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files (`.cfg`) and PPSSPP (`.ini`) configs at once.
 *   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
 *   **🩺 Diagnostics & Logging**:
-    *   **Automatic Logging**: All application output and errors are captured in `runtime.log`.
-    *   **Log Rotation**: Keeps history for the last 3 sessions.
-    *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs and preserves your image cache securely.
+    *   **Automatic Logging**: Application output and errors are captured in `runtime.log` with standardized log levels (INFO, ERROR, DEBUG).
+    *   **Customizable Verbosity**: Configure your desired log level via `settings.json`.
+    *   **Auto-Sync**: The `auto_push.py` script automatically downloads these logs to your host PC for easy debugging. See [docs/logging_guide.md](docs/logging_guide.md) for details.
 *   **⚡ Smart Caching & Quality of Life**: 
     *   **State Memory**: The app remembers exactly which tab you left off on and restores it instantly on next launch.
     *   **API Caching**: To respect device battery and the RetroAchievements API limits, server responses are cached locally.
@@ -45,12 +45,14 @@ A toggle menu to adjust how RetroAchievements behaves inside games.
 
 ### 3. Recent Achievements (Dashboard)
 Displays a cleanly formatted, pixel-scrollable list of every achievement you have unlocked in the past week, dynamically loading your locally cached achievement badges for a premium UI experience.
+- **Achievement of the Week**: Fetches and highlights the community's current weekly challenge directly at the top of the dashboard.
 
 ### 4. Favorite Games (Games)
 Directly reads your SpruceOS `pyui-favorites.json` and connects them to RetroAchievements!
 - **Dynamic Matching**: Fuzzy-matches your local ROM names against the RA database.
 - **Icon Caching**: Downloads and caches official square Game Icons for an enhanced list view.
 - **Global Badge Sync**: An autonomous background worker iterates through all your favorites and batch-downloads missing assets for offline browsing.
+- **Missable Warnings**: Parses achievement metadata to flag missable achievements in your games list to save you from restarting RPGs.
 - **HowLongToBeat**: Sort your backlog by "Shortest to Beat" using our custom HLTB engine.
 
 ### 5. Profile Stats (Stats)
@@ -103,8 +105,6 @@ If you are modifying the code, use the included `auto_push.py` script to rapidly
 
 ## 🗺️ Roadmap / Planned Features
 
-- [ ] **🏆 Achievement of the Week**: Fetch and display the community's current weekly challenge directly on the Dashboard.
-- [ ] **🚨 "Missable" Warnings**: Parse achievement metadata to flag missable achievements in your games list to save you from restarting RPGs.
 - [ ] **🔥 Retro Ratio Heatmap**: A GitHub-style activity grid color-coded by achievement rarity.
 - [ ] **⏳ Total Backlog Hours**: Sum up HLTB times to estimate how long to clear your favorites list.
 - [ ] **⏱️ Actual vs. Expected Playtime**: Parse local RetroArch `.lrc` logs to compare your actual playtime against the HLTB estimate.
@@ -123,5 +123,7 @@ Contributions, issues, and feature requests are welcome! If you find a SpruceOS 
 ## 📜 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+*Note: While the codebase supports OnionOS architecture, it has currently only been tested on SpruceOS. Feedback from OnionOS users is highly appreciated!*
 
 *Not officially affiliated with RetroAchievements.org.*
