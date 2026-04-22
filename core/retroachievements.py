@@ -449,3 +449,23 @@ def download_game_icon(image_url, display_name):
     except Exception as e:
         print(f"[ERROR] download_game_icon failed ({url}): {e}")
     return None
+
+def get_achievement_of_the_week(username, api_key):
+    """
+    Fetches the current global Achievement of the Week.
+    """
+    cached = _get_cached_data("aotw")
+    if cached is not None:
+        return cached
+
+    url = f"https://retroachievements.org/API/API_GetAchievementOfTheWeek.php?u={username}&y={api_key}"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                _set_cached_data("aotw", data)
+                return data
+    except Exception as e:
+        print(f"[ERROR] Fetch AOTW failed: {e}")
+    return {}
