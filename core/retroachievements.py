@@ -1,5 +1,8 @@
 import urllib.request
 import urllib.parse
+from core.logger import setup_logger
+
+logger = setup_logger("retroachievements")
 import urllib.error
 import json
 import os
@@ -23,7 +26,7 @@ def _save_cache(cache):
         with open(CACHE_FILE, 'w') as f:
             json.dump(cache, f)
     except Exception as e:
-        print(f"[ERROR] Failed to save cache: {e}")
+        logger.error(f"Failed to save cache: {e}")
 
 def _get_cached_data(key):
     cache = _load_cache()
@@ -69,7 +72,7 @@ def verify_credentials(username, password):
             return False, "Invalid Username or Web API Key!"
         return False, f"RetroAchievements HTTP Error {e.code}"
     except Exception as e:
-        print(f"[ERROR] API Exception: {e}")
+        logger.error(f"API Exception: {e}")
         return False, f"Connection failed. Wi-Fi?"
 
 def get_recent_achievements(username, password, count=10080):
@@ -92,7 +95,7 @@ def get_recent_achievements(username, password, count=10080):
                 _set_cached_data("recent", data)
                 return data
     except Exception as e:
-        print(f"[ERROR] Fetch achievements failed: {e}")
+        logger.error(f"Fetch achievements failed: {e}")
     return []
 
 def get_user_completed_games(username, api_key):
@@ -115,7 +118,7 @@ def get_user_completed_games(username, api_key):
                 _set_cached_data("completed_games", data)
                 return data
     except Exception as e:
-        print(f"[ERROR] Fetch completed games failed: {e}")
+        logger.error(f"Fetch completed games failed: {e}")
     return []
 
 def get_user_stats(username, password):
@@ -137,7 +140,7 @@ def get_user_stats(username, password):
             summary = _get_cached_data("summary")
             
     if summary:
-        print(f"[DEBUG] RA Summary Keys: {list(summary.keys())}")
+        logger.debug(f"RA Summary Keys: {list(summary.keys())}")
         stats["Rank"] = summary.get("Rank", "Unknown")
         
         # Try different possible keys for Hardcore Points
@@ -149,7 +152,7 @@ def get_user_stats(username, password):
         # Try different possible keys for True Points
         stats["TotalTruePoints"] = int(summary.get("TotalTruePoints") or summary.get("TruePoints") or 0)
 
-        print(f"[DEBUG] Resolved Stats: HC={stats['HCPoints']}, SC={stats['SCPoints']}, True={stats['TotalTruePoints']}")
+        logger.debug(f"Resolved Stats: HC={stats['HCPoints']}, SC={stats['SCPoints']}, True={stats['TotalTruePoints']}")
         
     # 2. Get Recent for Rarest
     recent = get_recent_achievements(username, password)
@@ -304,9 +307,9 @@ def update_ppsspp_config(username, password, prefs):
             with open(path, 'w') as f:
                 f.writelines(new_lines)
             updated_count += 1
-            print(f"[DEBUG] Successfully updated: {path}")
+            logger.debug(f"Successfully updated: {path}")
         except Exception as e:
-            print(f"[ERROR] Failed to update PPSSPP config {path}: {e}")
+            logger.error(f"Failed to update PPSSPP config {path}: {e}")
 
     return updated_count > 0, f"Updated {updated_count} configs"
 
@@ -329,10 +332,10 @@ def update_retroarch_config(username, password, prefs):
             success, msg = update_single_config(path, username, password, prefs)
             if success:
                 updated_count += 1
-                print(f"[DEBUG] Successfully updated: {path}")
+                logger.debug(f"Successfully updated: {path}")
             else:
                 errors.append(f"{path}: {msg}")
-                print(f"[ERROR] Failed to update {path}: {msg}")
+                logger.error(f"Failed to update {path}: {msg}")
     
     # Fallback for local testing
     if updated_count == 0:
@@ -340,7 +343,7 @@ def update_retroarch_config(username, password, prefs):
         if not os.path.exists(test_path):
             with open(test_path, 'w') as f: f.write("")
         update_single_config(test_path, username, password, prefs)
-        print(f"[DEBUG] No system configs found, updated local {test_path}")
+        logger.debug(f"No system configs found, updated local {test_path}")
         return True, "Updated local test config"
 
     if errors and updated_count == 0:
@@ -355,10 +358,10 @@ def get_game_list(username, api_key, console_id):
     cache_key = f"console_{console_id}_games"
     cached = _get_cached_data(cache_key)
     if cached:
-        print(f"[CACHE] Hit for console {console_id} games")
+        logger.info(f"Cache hit for console {console_id} games")
         return cached
 
-    print(f"[API] Fetching game list for console {console_id}")
+    logger.info(f"Fetching game list for console {console_id}")
     url = f"https://retroachievements.org/API/API_GetGameList.php?u={username}&y={api_key}&i={console_id}"
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -369,7 +372,7 @@ def get_game_list(username, api_key, console_id):
                     _set_cached_data(cache_key, data)
                     return data
     except Exception as e:
-        print(f"[ERROR] get_game_list failed: {e}")
+        logger.error(f"get_game_list failed: {e}")
     return []
 
 def get_game_info_and_user_progress(username, api_key, game_id):
@@ -379,10 +382,10 @@ def get_game_info_and_user_progress(username, api_key, game_id):
     cache_key = f"game_{game_id}_progress"
     cached = _get_cached_data(cache_key)
     if cached:
-        print(f"[CACHE] Hit for game {game_id} progress")
+        logger.info(f"Cache hit for game {game_id} progress")
         return cached
 
-    print(f"[API] Fetching progress for game {game_id}")
+    logger.info(f"Fetching progress for game {game_id}")
     url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?u={username}&y={api_key}&user={username}&g={game_id}"
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -392,7 +395,7 @@ def get_game_info_and_user_progress(username, api_key, game_id):
                 _set_cached_data(cache_key, data)
                 return data
     except Exception as e:
-        print(f"[ERROR] get_game_info_and_user_progress failed: {e}")
+        logger.error(f"get_game_info_and_user_progress failed: {e}")
     return {}
 
 def download_badge(badge_name, is_locked=False):
@@ -419,7 +422,7 @@ def download_badge(badge_name, is_locked=False):
                     f.write(response.read())
                 return local_path
     except Exception as e:
-        print(f"[ERROR] download_badge failed ({url}): {e}")
+        logger.error(f"download_badge failed ({url}): {e}")
     return None
 
 def download_game_icon(image_url, display_name):
@@ -450,7 +453,7 @@ def download_game_icon(image_url, display_name):
                     f.write(response.read())
                 return local_path
     except Exception as e:
-        print(f"[ERROR] download_game_icon failed ({url}): {e}")
+        logger.error(f"download_game_icon failed ({url}): {e}")
     return None
 
 def get_achievement_of_the_week(username, api_key):
@@ -470,5 +473,5 @@ def get_achievement_of_the_week(username, api_key):
                 _set_cached_data("aotw", data)
                 return data
     except Exception as e:
-        print(f"[ERROR] Fetch AOTW failed: {e}")
+        logger.error(f"Fetch AOTW failed: {e}")
     return {}

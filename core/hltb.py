@@ -5,6 +5,9 @@ import json
 import os
 import re
 import time
+from core.logger import setup_logger
+
+logger = setup_logger("hltb")
 
 CACHE_FILE = "/mnt/SDCARD/Saves/hltb_cache.json"
 if not os.path.exists("/mnt/SDCARD/Saves"):
@@ -47,7 +50,7 @@ class HLTB:
         if time.time() - self.last_discovery < 1800 and self.auth_token:
             return True
 
-        print("[HLTB] Discovering API parameters...")
+        logger.info("Discovering API parameters...")
         try:
             # 1. Fetch main page to find JS chunks
             req = urllib.request.Request(self.base_url, headers={'User-Agent': self.user_agent})
@@ -56,7 +59,7 @@ class HLTB:
                 
             # 2. Extract and scan scripts
             scripts = re.findall(r'/_next/static/chunks/([a-zA-Z0-9.\-_]+)\.js', html)
-            print(f"[HLTB] Found {len(scripts)} script chunks.")
+            logger.debug(f"Found {len(scripts)} script chunks.")
             
             discovered_path = None
             for script in scripts:
@@ -75,13 +78,13 @@ class HLTB:
                         
                         if path_match:
                             discovered_path = path_match.group(1)
-                            print(f"[HLTB] Discovered search path in {script}: {discovered_path}")
+                            logger.debug(f"Discovered search path in {script}: {discovered_path}")
                             break
                 except:
                     continue
             
             self.search_path = discovered_path or "/api/find" # Fallback
-            print(f"[HLTB] Using search path: {self.search_path}")
+            logger.info(f"Using search path: {self.search_path}")
 
             # 3. Fetch Handshake tokens
             init_url = f"{self.base_url}{self.search_path}/init?t={int(time.time() * 1000)}"
@@ -111,7 +114,7 @@ class HLTB:
             self.last_discovery = time.time()
             return True
         except Exception as e:
-            print(f"[HLTB] Discovery failed: {e}")
+            logger.error(f"Discovery failed: {e}")
             return False
 
     def search(self, game_title, release_year=None):
@@ -186,12 +189,12 @@ class HLTB:
                 return times
         except urllib.error.HTTPError as e:
             if e.code in [403, 308, 404]:
-                print(f"[HLTB] Search blocked ({e.code}), resetting...")
+                logger.warning(f"Search blocked ({e.code}), resetting...")
                 self.last_discovery = 0
             else:
-                print(f"[HLTB] Search failed for {game_title}: {e}")
+                logger.error(f"Search failed for {game_title}: {e}")
         except Exception as e:
-            print(f"[HLTB] Search error for {game_title}: {e}")
+            logger.error(f"Search error for {game_title}: {e}")
             
         return None
 

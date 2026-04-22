@@ -1,5 +1,9 @@
 import sys
 import os
+import time
+from core.logger import setup_logger
+
+logger = setup_logger("main")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'libs'))
 
@@ -49,11 +53,11 @@ def main():
     sys.stdout = Logger(log_path)
     sys.stderr = sys.stdout
     
-    print("--- RA Configurator Starting ---")
+    logger.info("--- RA Configurator Starting ---")
     
     sdl2.ext.init()
     if sdl2.sdlttf.TTF_Init() == -1:
-        print(f"TTF_Init Error: {sdl2.sdlttf.TTF_GetError().decode('utf-8')}")
+        logger.error(f"TTF_Init Error: {sdl2.sdlttf.TTF_GetError().decode('utf-8')}")
         sys.exit(1)
         
     core.input.init_joysticks()
@@ -73,7 +77,7 @@ def main():
     
     font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font.ttf')
     if not os.path.exists(font_path):
-        print("Missing font asset")
+        logger.warning("Missing font asset, text rendering will fail")
         sys.exit(1)
 
     font = sdl2.sdlttf.TTF_OpenFont(font_path.encode('utf-8'), 20)
@@ -97,25 +101,25 @@ def main():
                 result = current_screen.handle_event(event)
                 
                 if result == "QUIT_APP":
-                    print("[INFO] Quitting Application")
+                    logger.info("Quitting Application")
                     running = False
                 elif result == "SWITCH_TO_WELCOME":
-                    print("[INFO] Switching to Welcome")
+                    logger.info("Switching to Welcome")
                     current_screen = WelcomeScreen(renderer, font)
                 elif result == "SWITCH_TO_DASHBOARD":
-                    print("[INFO] Switching to Dashboard")
+                    logger.info("Switching to Dashboard")
                     current_screen = DashboardScreen(renderer, font)
                 elif result == "SWITCH_TO_SETTINGS":
-                    print("[INFO] Switching to Settings")
+                    logger.info("Switching to Settings")
                     current_screen = SettingsScreen(renderer, font)
                 elif result == "SWITCH_TO_GAMES":
-                    print("[INFO] Switching to Games")
+                    logger.info("Switching to Games")
                     current_screen = GamesScreen(renderer, font)
                 elif result == "SWITCH_TO_STATS":
-                    print("[INFO] Switching to Stats")
+                    logger.info("Switching to Stats")
                     current_screen = StatsScreen(renderer, font)
                 elif result == "SWITCH_TO_AUTH":
-                    print("[INFO] Switching to Auth")
+                    logger.info("Switching to Auth")
                     current_screen = AuthScreen(renderer, font)
 
         # Update and Draw

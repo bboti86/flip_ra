@@ -8,6 +8,9 @@ import time
 from .components import render_text, draw_image, render_text_shadow, draw_panel, draw_selector
 # from core import hltb
 from core import input, retroachievements, system
+from core.logger import setup_logger
+
+logger = setup_logger("games_screen")
 
 # SYSTEM_MAP is now handled by system.SystemManager.get_system_map()
 
@@ -90,15 +93,15 @@ class GamesScreen:
             with open(self.match_cache_path, 'w') as f:
                 json.dump(self.match_results, f)
         except Exception as e:
-            print(f"[ERROR] Failed to save match cache: {e}")
+            logger.error(f"Failed to save match cache: {e}")
 
     def load_favorites(self):
         try:
             if os.path.exists(self.favorites_path):
-                print(f"[INFO] Loading favorites from {self.favorites_path}")
+                logger.info(f"Loading favorites from {self.favorites_path}")
                 with open(self.favorites_path, 'r') as f:
                     self.favorites = json.load(f)
-                print(f"[INFO] Loaded {len(self.favorites)} favorite games")
+                logger.info(f"Loaded {len(self.favorites)} favorite games")
                 self.apply_sorting()
             else:
                 self.error_msg = "No favorites found on device."
@@ -108,7 +111,7 @@ class GamesScreen:
     def apply_sorting(self):
         # DISABLED: HLTB Sorting
         if self.sort_mode == "SHORTEST":
-            # print("[INFO] Sorting favorites by HLTB Main Story time...")
+            # logger.info("Sorting favorites by HLTB Main Story time...")
             # def get_sort_time(g):
             #     data = hltb.get_game_times(g["display_name"])
             #     return data["main"] if data else 999
@@ -164,7 +167,7 @@ class GamesScreen:
                 icon_url = matched_game.get("ImageIcon")
                 if icon_url:
                     retroachievements.download_game_icon(icon_url, self.target_game["display_name"])
-                print(f"[INFO] Matched game: '{self.target_game['display_name']}' -> '{matched_title}' (ID: {self.ra_game_id})")
+                logger.info(f"Matched game: '{self.target_game['display_name']}' -> '{matched_title}' (ID: {self.ra_game_id})")
                 
                 self.loading_msg = f"Found: {matched_title}. Loading progress..."
                 self.fetch_game_progress()
@@ -198,7 +201,7 @@ class GamesScreen:
                 # Performance Optimization: Skip if already fully synced
                 match_data = self.match_results.get(game["display_name"], {})
                 if match_data.get("synced"):
-                    print(f"[SYNC] Skipping {game['display_name']} (already cached)")
+                    logger.info(f"Sync: Skipping {game['display_name']} (already cached)")
                     continue
                 
                 # Matching
@@ -276,7 +279,7 @@ class GamesScreen:
         # Dict to sorted list
         self.achievements = sorted(raw_achs.values(), key=lambda x: x.get("DisplayOrder", 0))
         self.scroll_index = 0
-        print(f"[INFO] Loaded {len(self.achievements)} achievements for game ID {self.ra_game_id}")
+        logger.info(f"Loaded {len(self.achievements)} achievements for game ID {self.ra_game_id}")
         
         # Start background HLTB fetch - DISABLED
         # def _hltb_task():
@@ -284,7 +287,7 @@ class GamesScreen:
         #     year = self.game_data.get("Released")
         #     self.hltb_data = hltb.get_game_times(title, year)
         #     if self.hltb_data:
-        #         print(f"[HLTB] Found data: {self.hltb_data}")
+        #         logger.info(f"HLTB Found data: {self.hltb_data}")
         # threading.Thread(target=_hltb_task, daemon=True).start()
         
         # Build download queue
@@ -292,7 +295,7 @@ class GamesScreen:
         badges_dir = os.path.join(os.path.dirname(__file__), '..', 'assets', 'badges')
         if not os.path.exists(badges_dir):
             os.makedirs(badges_dir)
-            print(f"[INFO] Created badges directory: {badges_dir}")
+            logger.info(f"Created badges directory: {badges_dir}")
 
         for ach in self.achievements:
             badge = ach.get("BadgeName")
@@ -309,13 +312,13 @@ class GamesScreen:
                 self.download_queue.append((badge, True))
         
         if self.download_queue:
-            print(f"[INFO] Found {len(self.download_queue)} missing badges, starting download...")
+            logger.info(f"Found {len(self.download_queue)} missing badges, starting download...")
             self.total_downloads = len(self.download_queue)
             self.download_progress = 0
             self.state = 2
             self.start_downloading()
         else:
-            print("[INFO] All badges cached locally, skipping download.")
+            logger.info("All badges cached locally, skipping download.")
             # Update sync status in cache
             if self.target_game["display_name"] in self.match_results:
                 self.match_results[self.target_game["display_name"]]["synced"] = True

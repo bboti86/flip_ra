@@ -3,9 +3,13 @@ import sdl2.ext
 import json
 import threading
 import os
+import logging
 
 from .components import TextInput, OnScreenKeyboard, render_text, render_text_shadow, draw_panel, draw_selector
 from core import input, retroachievements
+from core.logger import setup_logger
+
+logger = setup_logger("auth_screen")
 
 class AuthScreen:
     def __init__(self, renderer, font):
@@ -65,13 +69,13 @@ class AuthScreen:
         def _task():
             success, msg = retroachievements.verify_credentials(username, api_key)
             if not success:
-                print(f"[AUTH] Verification failed for user {username}: {msg}")
+                logger.error(f"Verification failed for user {username}: {msg}")
                 self.status_message = f"Error: {msg}"
                 self.status_color = (255, 100, 100)
                 self.is_verifying = False
                 return
             
-            print(f"[AUTH] Credentials verified successfully for user {username}")
+            logger.info(f"Credentials verified successfully for user {username}")
             self.status_message = "Valid! Press A to Overwrite Retroarch Config, or B to Cancel."
             self.status_color = (100, 255, 255)
             self.is_verifying = False
