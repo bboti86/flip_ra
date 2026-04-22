@@ -96,7 +96,15 @@ class GamesScreen:
         try:
             if os.path.exists(self.match_cache_path):
                 with open(self.match_cache_path, 'r') as f:
-                    self.match_results = json.load(f)
+                    raw_data = json.load(f)
+                    
+                # Migration: Convert old {name: id} to {name: {"id": id, "synced": False}}
+                self.match_results = {}
+                for name, val in raw_data.items():
+                    if isinstance(val, (int, type(None))):
+                        self.match_results[name] = {"id": val, "synced": False}
+                    else:
+                        self.match_results[name] = val
         except:
             self.match_results = {}
 
@@ -164,7 +172,7 @@ class GamesScreen:
                 
                 if not matches:
                     self.error_msg = "No matching game found on RA."
-                    self.match_results[self.target_game["display_name"]] = None
+                    self.match_results[self.target_game["display_name"]] = {"id": None, "synced": False}
                     self.save_match_cache()
                     self.state = 0
                     return
@@ -172,7 +180,7 @@ class GamesScreen:
                 matched_title = matches[0]
                 matched_game = next(g for g in game_list if g["Title"] == matched_title)
                 self.ra_game_id = matched_game["ID"]
-                self.match_results[self.target_game["display_name"]] = self.ra_game_id
+                self.match_results[self.target_game["display_name"]] = {"id": self.ra_game_id, "synced": False}
                 self.save_match_cache()
                 
                 icon_url = matched_game.get("ImageIcon")
@@ -209,6 +217,12 @@ class GamesScreen:
                 self.sync_current_idx = i + 1
                 self.sync_current_game_name = game["display_name"]
                 
+                # Performance Optimization: Skip if already fully synced
+                match_data = self.match_results.get(game["display_name"], {})
+                if match_data.get("synced"):
+                    print(f"[SYNC] Skipping {game['display_name']} (already cached)")
+                    continue
+                
                 # Matching
                 system_name = game.get("game_system_name", "").upper()
                 console_id = SYSTEM_MAP.get(system_name)
@@ -220,12 +234,12 @@ class GamesScreen:
                 titles = [g["Title"] for g in game_list]
                 matches = difflib.get_close_matches(game["display_name"], titles, n=1, cutoff=0.3)
                 if not matches:
-                    self.match_results[game["display_name"]] = None
+                    self.match_results[game["display_name"]] = {"id": None, "synced": False}
                     continue
                 
                 matched_game = next(g for g in game_list if g["Title"] == matches[0])
                 ra_game_id = matched_game["ID"]
-                self.match_results[game["display_name"]] = ra_game_id
+                self.match_results[game["display_name"]] = {"id": ra_game_id, "synced": False}
                 
                 icon_url = matched_game.get("ImageIcon")
                 if icon_url:
@@ -255,6 +269,9 @@ class GamesScreen:
                     self.sync_download_progress += 1
                     total_dl += 1
                     time.sleep(0.05)
+                
+                # Mark as synced after successful iteration
+                self.match_results[game["display_name"]]["synced"] = True
             
             self.save_match_cache()
                     
@@ -320,6 +337,10 @@ class GamesScreen:
             self.start_downloading()
         else:
             print("[INFO] All badges cached locally, skipping download.")
+            # Update sync status in cache
+            if self.target_game["display_name"] in self.match_results:
+                self.match_results[self.target_game["display_name"]]["synced"] = True
+                self.save_match_cache()
             self.state = 3
 
     def start_downloading(self):
@@ -489,7 +510,8 @@ class GamesScreen:
                     render_text_shadow(self.renderer, self.font, game["display_name"], text_x, y + 8, color, shadow_offset=1)
                     
                     # Show match status
-                    match_id = self.match_results.get(game["display_name"], "pending")
+                    match_data = self.match_results.get(game["display_name"], {})
+                    match_id = match_data.get("id", "pending")
                     if match_id is None:
                         render_text_shadow(self.renderer, self.font, "[!]", 580, y + 8, (255, 50, 50))
                     
