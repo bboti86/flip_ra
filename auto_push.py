@@ -35,8 +35,13 @@ def run_local_build():
     os.system("mkdir -p deploy/RA_Manager")
     
     print(f"{BOLD}{BLUE}Copying application files...{RESET}")
-    os.system("cp -r core ui assets libs deploy/RA_Manager/ 2>/dev/null || true")
+    # Copy code and libs, but skip heavy assets subfolders
+    os.system("cp -r core ui libs deploy/RA_Manager/ 2>/dev/null || true")
     os.system("cp main.py launch.sh settings.json config.json icon.png deploy/RA_Manager/ 2>/dev/null || true")
+    
+    # Only copy static assets (fonts, etc) but skip the downloaded badge/icon folders
+    os.system("mkdir -p deploy/RA_Manager/assets")
+    os.system("cp assets/*.png assets/*.ttf deploy/RA_Manager/assets/ 2>/dev/null || true")
     
     print(f"{BOLD}{BLUE}Cleaning up __pycache__ directories from deployment...{RESET}")
     os.system("find deploy/RA_Manager -type d -name '__pycache__' -exec rm -r {} + 2>/dev/null || true")
@@ -68,43 +73,25 @@ def deploy():
                 except:
                     pass
             
-            # Grab cached badges to preserve them across pushes
-            try:
-                # Pack badges on device
-                stdin, stdout, stderr = ssh.exec_command(f"cd {REMOTE_APP_DIR}/{FOLDER_NAME}/assets && tar c -f badges.tar badges")
-                if stdout.channel.recv_exit_status() == 0:
-                    scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/badges.tar", local_path="badges.tar")
-                    os.system("tar xf badges.tar -C deploy/RA_Manager/assets/ && rm badges.tar")
-                    print(f"   {BLUE}-> 🖼️  Preserved badges cache from device{RESET}")
-                else:
-                    print(f"   {YELLOW}-> ⚠️  No badges cache found to preserve.{RESET}")
-            except Exception as e:
-                print(f"   {YELLOW}-> ⚠️  Could not fetch badges: {e}{RESET}")
-                
-            try:
-                # Pack game_icons on device
-                stdin, stdout, stderr = ssh.exec_command(f"cd {REMOTE_APP_DIR}/{FOLDER_NAME}/assets && tar c -f game_icons.tar game_icons")
-                if stdout.channel.recv_exit_status() == 0:
-                    scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/assets/game_icons.tar", local_path="game_icons.tar")
-                    os.system("tar xf game_icons.tar -C deploy/RA_Manager/assets/ && rm game_icons.tar")
-                    print(f"   {BLUE}-> 🖼️  Preserved game_icons cache from device{RESET}")
-            except Exception as e:
-                pass
+            # Grab caches (Settings, Match, API) to keep your PC in sync if needed, 
+            # but we won't strictly need them for the push anymore since we aren't deleting them on device.
+            for filename in ["settings.json", "match_cache.json", "api_cache.json"]:
+                remote_path = f"{REMOTE_APP_DIR}/{FOLDER_NAME}/{filename}"
+                try:
+                    scp.get(remote_path, local_path=filename)
+                    print(f"   {BLUE}-> ⚙️  Syncing {filename} to local PC{RESET}")
+                except:
+                    pass
 
-            try:
-                scp.get(f"{REMOTE_APP_DIR}/{FOLDER_NAME}/settings.json", local_path="settings.json")
-                print(f"   {BLUE}-> ⚙️  Downloaded to settings.json (preserved){RESET}")
-                # Copy the preserved settings.json into the deploy directory so it gets pushed back
-                os.system(f"cp settings.json deploy/{FOLDER_NAME}/settings.json")
-            except:
-                print(f"   {YELLOW}-> ⚠️  No settings.json found on device.{RESET}")
     except Exception as e:
         print(f"   {RED}-> ❌ Failed to fetch files: {e}{RESET}")
 
-    print(f"{BOLD}{CYAN}4) 🧹 Removing old revision from SpruceOS...{RESET}")
+    print(f"{BOLD}{CYAN}4) 🧹 Cleaning code from device (preserving assets and caches)...{RESET}")
     target_folder = f"{REMOTE_APP_DIR}/{FOLDER_NAME}"
-    stdin, stdout, stderr = ssh.exec_command(f"rm -rf '{target_folder}'")
-    stdout.channel.recv_exit_status() # Wait for completion
+    # Delete everything EXCEPT assets and .json files
+    cleanup_cmd = f"find {target_folder} -mindepth 1 ! -name 'assets' ! -name '*.json' -exec rm -rf {{}} +"
+    stdin, stdout, stderr = ssh.exec_command(cleanup_cmd)
+    stdout.channel.recv_exit_status()
     
     print(f"{BOLD}{CYAN}5) 🚀 Pushing new application files via secure copy...{RESET}")
     try:
