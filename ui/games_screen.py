@@ -7,39 +7,16 @@ import difflib
 import time
 from .components import render_text, draw_image, render_text_shadow, draw_panel, draw_selector
 # from core import hltb
-from core import input, retroachievements
+from core import input, retroachievements, system
 
-# Mapping SpruceOS system names to RA Console IDs
-SYSTEM_MAP = {
-    "ARCADE": 27,
-    "SFC": 3,
-    "SNES": 3,
-    "GBA": 5,
-    "GB": 4,
-    "GBC": 6,
-    "MD": 1,
-    "GENESIS": 1,
-    "FC": 7,
-    "NES": 7,
-    "PS": 12,
-    "PSX": 12,
-    "N64": 2,
-    "NDS": 18,
-    "PSP": 41,
-    "PCE": 8,
-    "TG16": 8
-}
+# SYSTEM_MAP is now handled by system.SystemManager.get_system_map()
 
 class GamesScreen:
     def __init__(self, renderer, font):
         self.renderer = renderer
         self.font = font
         self.config_path = os.path.join(os.path.dirname(__file__), '..', 'settings.json')
-        # On device: /mnt/SDCARD/Saves/pyui-favorites.json
-        # Locally for testing: ./pyui-favorites.json
-        self.favorites_path = "/mnt/SDCARD/Saves/pyui-favorites.json"
-        if not os.path.exists(self.favorites_path):
-            self.favorites_path = "pyui-favorites.json"
+        self.favorites_path = system.SystemManager.get_favorites_path()
             
         self.load_config()
         self.username = self.config.get("ra_username", "")
@@ -225,7 +202,8 @@ class GamesScreen:
                 
                 # Matching
                 system_name = game.get("game_system_name", "").upper()
-                console_id = SYSTEM_MAP.get(system_name)
+                system_map = system.SystemManager.get_system_map()
+                console_id = system_map.get(system_name)
                 if not console_id: continue
                 
                 game_list = retroachievements.get_game_list(self.username, self.api_key, console_id)

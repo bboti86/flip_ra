@@ -2,8 +2,7 @@ import sdl2
 import sdl2.ext
 import threading
 from .components import render_text, render_text_shadow, draw_panel, draw_selector, draw_image
-# from core import hltb
-from core import input, retroachievements
+from core import input, retroachievements, system
 
 import os
 import json
@@ -27,9 +26,7 @@ class DashboardScreen:
         # self.backlog_hours = 0
         
         # Load favorites for backlog stats
-        self.favorites_path = "/mnt/SDCARD/Saves/pyui-favorites.json"
-        if not os.path.exists(self.favorites_path):
-            self.favorites_path = "pyui-favorites.json"
+        self.favorites_path = system.SystemManager.get_favorites_path()
         self.load_favorites()
 
         self.fetch_data()

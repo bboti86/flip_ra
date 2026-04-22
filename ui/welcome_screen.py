@@ -1,7 +1,7 @@
 import sdl2
 import sdl2.ext
 from .components import render_text_shadow, draw_panel, draw_selector
-from core import input
+from core import input, system
 
 class WelcomeScreen:
     # Class-level variable to remember cursor position across screen changes
@@ -92,3 +92,12 @@ class WelcomeScreen:
             
         # 4. Footer controls
         render_text_shadow(self.renderer, self.font, "D-Pad: Navigate | A: Select | B: Exit App", 320, 440, (150, 150, 150), shadow_offset=1, center=True)
+        
+        # 5. OS identifier
+        os_type = system.SystemManager.get_os_type()
+        os_label = {
+            "SPRUCE": "SpruceOS",
+            "ONION": "OnionOS",
+            "GENERIC": "Custom Handheld"
+        }.get(os_type, "Unknown System")
+        render_text_shadow(self.renderer, self.font, f"Running on {os_label}", 320, 460, (80, 80, 80), shadow_offset=1, center=True)
