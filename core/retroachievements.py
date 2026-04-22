@@ -409,6 +409,9 @@ def download_badge(badge_name, is_locked=False):
         
     url = f"https://media.retroachievements.org/Badge/{badge_name}{suffix}.png"
     try:
+        # Ensure the assets/badges directory exists
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=10) as response:
             if response.status == 200:

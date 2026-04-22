@@ -88,9 +88,8 @@ def deploy():
 
     print(f"{BOLD}{CYAN}4) 🧹 Cleaning code from device (preserving assets and caches)...{RESET}")
     target_folder = f"{REMOTE_APP_DIR}/{FOLDER_NAME}"
-    # Delete everything EXCEPT assets and .json files
-    cleanup_cmd = f"find {target_folder} -mindepth 1 ! -name 'assets' ! -name '*.json' -exec rm -rf {{}} +"
-    stdin, stdout, stderr = ssh.exec_command(cleanup_cmd)
+    # Explicitly remove code folders but keep assets/ and .json files
+    ssh.exec_command(f"rm -rf {target_folder}/core {target_folder}/ui {target_folder}/libs {target_folder}/main.py")
     stdout.channel.recv_exit_status()
     
     print(f"{BOLD}{CYAN}5) 🚀 Pushing new application files via secure copy...{RESET}")
