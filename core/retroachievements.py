@@ -220,6 +220,40 @@ def update_single_config(cfg_path, username, password, prefs):
         return False, str(e)
 
 def update_ppsspp_config(username, password, prefs):
+    # Fetch token for PPSSPP (Required for newer PPSSPP versions on Spruce OS)
+    token = None
+    if username and password:
+        url = f"https://retroachievements.org/dorequest.php?r=login&u={urllib.parse.quote(username)}&p={urllib.parse.quote(password)}"
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'PPSSPP'})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                if response.status == 200:
+                    data = json.loads(response.read().decode('utf-8'))
+                    token = data.get("Token")
+        except Exception as e:
+            logger.error(f"Failed to fetch PPSSPP token: {e}")
+
+    if token:
+        token_dirs = [
+            '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM',
+            '/mnt/SDCARD/Saves/.config/ppsspp/PSP/SYSTEM',
+            '/mnt/sdcard/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM',
+            '/mnt/SDCARD/Emu/.emu_setup/.config/ppsspp/PSP/SYSTEM'
+        ]
+        for t_dir in token_dirs:
+            # We don't want to create both sdcard and SDCARD, let's just make sure we try the ones that exist or standard Spruce OS paths
+            try:
+                # If /mnt/SDCARD or /mnt/sdcard exists, we can create the rest of the path
+                base_mnt = '/mnt/SDCARD' if 'SDCARD' in t_dir else '/mnt/sdcard'
+                if os.path.exists(base_mnt):
+                    os.makedirs(t_dir, exist_ok=True)
+                    token_file = os.path.join(t_dir, 'ppsspp_retroachievements.dat')
+                    with open(token_file, 'w') as f:
+                        f.write(token)
+                    logger.debug(f"Saved PPSSPP token to {token_file}")
+            except Exception as e:
+                logger.error(f"Failed to write PPSSPP token to {t_dir}: {e}")
+
     paths = [
         # Active SpruceOS configurations (Prioritized)
         '/mnt/sdcard/Saves/.config/ppsspp/PSP/SYSTEM/ppsspp-Flip.ini',

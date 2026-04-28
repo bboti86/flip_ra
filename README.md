@@ -12,8 +12,8 @@ This app allows you to securely manage your RetroAchievements credentials, sync 
 
 ## ✨ Key Features
 
-*   **🔒 Secure Credential Management**: Safely enter your Username, Password, and Web API Key. Your sensitive data is masked during input and saved securely to a local `settings.json`.
-*   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files (`.cfg`) and PPSSPP (`.ini`) configs at once.
+*   **🔒 Secure Credential Management**: Safely enter your Username, Password, and Web API Key. Your sensitive data is masked during input and saved securely to a local `settings.json`. The app securely generates and injects API tokens for PPSSPP, avoiding plaintext password exposure in emulator config files.
+*   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files (`.cfg`) and PPSSPP configs at once.
 *   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: Application output and errors are captured in `runtime.log` with standardized log levels (INFO, ERROR, DEBUG).
