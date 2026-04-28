@@ -33,7 +33,7 @@ class AuthScreen:
             self.status_message = "Authenticated. START: Dashboard | SELECT: Update Config"
             self.status_color = (100, 255, 100)
         else:
-            self.status_message = "D-Pad: Select | A: Type | Start: Verify | B: Exit"
+            self.status_message = "D-Pad: Select | A: Type | Select: Verify | B: Exit"
             self.status_color = (150, 150, 150)
             
         self.is_verifying = False
@@ -204,4 +204,4 @@ class AuthScreen:
             render_text_shadow(self.renderer, self.font, self.status_message, 320, 325, self.status_color, shadow_offset=1, center=True)
             
             # Footer
-            render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Type | Start: Verify | B: Menu", 320, 440, (150, 150, 150), shadow_offset=1, center=True)
+            render_text_shadow(self.renderer, self.font, "L1/R1: Tab | D-Pad: Select | A: Type | Select: Verify | B: Menu", 320, 440, (150, 150, 150), shadow_offset=1, center=True)

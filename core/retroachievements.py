@@ -249,7 +249,7 @@ def update_ppsspp_config(username, password, prefs):
             overrides = {
                 'AchievementsEnable': 'True',
                 'AchievementsUserName': username,
-                'AchievementsToken': password,
+                'AchievementsPassword': password,
                 'AchievementsChallengeMode': 'True' if prefs.get('cheevos_hardcore_mode_enable', True) else 'False'
             }
 
