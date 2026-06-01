@@ -8,6 +8,7 @@ SpruceOS devices are low-power and have limited RAM. They require a lightweight,
 
 *   **PySDL2 Foundation**: We bypass standard Python GUI frameworks (like Tkinter or PyQt) in favor of `PySDL2`. It provides direct access to the hardware renderer (`sdl2.SDL_RENDERER_ACCELERATED`) and native GameController API.
 *   **Non-Blocking Operations**: The Miyoo will freeze if the main SDL rendering loop is blocked by network requests or heavy I/O. All long-running operations (like API calls or file parsing) must be wrapped in background threads: `threading.Thread(target=_task, daemon=True).start()`.
+*   **Background Daemons**: For background services (like the offline proxy) that must survive the app closing, use decoupled `subprocess.Popen` calls with output redirected to a log file (`service.log`). Be careful using `pgrep` on BusyBox systems to track processes, as it may match its own arguments; a manual `/proc` scanner in Python is more reliable.
 *   **Aggressive Caching**: To minimize network overhead and save battery, use local JSON caching (e.g., `api_cache.json`, `match_cache.json`).
 *   **Input Handling**: Avoid relying solely on `SDL_KEYDOWN`. Custom firmware often maps the D-Pad to analog axes. Our input module (`core/input.py`) checks `SDL_CONTROLLERAXISMOTION` with thresholds (e.g., `< -16000` or `> 16000`) for the D-Pad and maintains an `_action_states` dictionary for continuous scrolling.
 

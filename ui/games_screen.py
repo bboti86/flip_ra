@@ -381,9 +381,15 @@ class GamesScreen:
             max_scroll = max(0, count - 5)
             
             if action == input.UP:
-                self.scroll_index = max(0, self.scroll_index - 1)
+                if self.scroll_index <= 0:
+                    self.scroll_index = max_scroll
+                else:
+                    self.scroll_index = max(0, self.scroll_index - 1)
             elif action == input.DOWN:
-                self.scroll_index = min(max_scroll, self.scroll_index + 1)
+                if self.scroll_index >= max_scroll:
+                    self.scroll_index = 0
+                else:
+                    self.scroll_index = min(max_scroll, self.scroll_index + 1)
             elif action == input.PAGE_UP:
                 self.scroll_index = max(0, self.scroll_index - 5)
             elif action == input.PAGE_DOWN:

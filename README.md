@@ -14,6 +14,7 @@ This app allows you to securely manage your RetroAchievements credentials, sync 
 
 *   **🔒 Secure Credential Management**: Safely enter your Username, Password, and Web API Key. Your sensitive data is masked during input and saved securely to a local `settings.json`. The app securely generates and injects API tokens for PPSSPP, avoiding plaintext password exposure in emulator config files.
 *   **⚙️ Universal Config Injection**: With a press of a button, inject your credentials and preferences into *all* SpruceOS platform-specific RetroArch configuration files (`.cfg`) and PPSSPP configs at once.
+*   **🔌 Offline RetroAchievements Proxy**: Native integration of the `RAOfflineProxy` service. Allows you to continue playing and earning *softcore* achievements offline. The app starts a lightweight background proxy daemon, dynamically patches active RetroArch configurations (`cheevos_custom_host = "127.0.0.1:8080"`), caches game/achievement data locally, and automatically flushes your queued awards to RetroAchievements.org when you reconnect to Wi-Fi. *(Note: Offline proxying is supported for RetroArch cores only. PPSSPP does not support custom achievement hosts.)*
 *   **🛠️ Deep Preference Toggles**: Turn on **Hardcore Mode**, toggle unlock sounds, adjust the position of notification anchors, and more directly from the app.
 *   **🩺 Diagnostics & Logging**:
     *   **Automatic Logging**: Application output and errors are captured in `runtime.log` with standardized log levels (INFO, ERROR, DEBUG).
@@ -42,6 +43,7 @@ A toggle menu to adjust how RetroAchievements behaves inside games.
 - Enable/Disable **Hardcore Mode**.
 - Set **Appearance Anchors** (Top-Left, Bottom-Right, etc.) to keep UI elements from blocking vital HUD components.
 - Toggle Challenge Indicators, Auto-Screenshots, and Unlock Sounds.
+- **Offline Proxy Toggle**: Start or stop the local offline proxy daemon and dynamically patch/revert active RetroArch configurations seamlessly. *(RetroArch only)*
 
 ### 3. Recent Achievements (Dashboard)
 Displays a cleanly formatted, pixel-scrollable list of every achievement you have unlocked in the past week, dynamically loading your locally cached achievement badges for a premium UI experience.
@@ -114,11 +116,21 @@ If you are modifying the code, use the included `auto_push.py` script to rapidly
 
 ---
 
+## ⚠️ Known Limitations
+
+*   **PPSSPP Offline Achievements**: While this app can inject your credentials into PPSSPP for online play, the offline proxy feature (`RAOfflineProxy`) is strictly for RetroArch. PPSSPP hardcodes its achievement host to the official RetroAchievements server via HTTPS and cannot be redirected to the local proxy.
+
+---
+
 ## 📚 Documentation & Contributing
 
 For developer insights and brainstorming data around the API structures and SpruceOS retroarch configurations used during the creation of this app, check out the [docs folder](./docs).
 
 Contributions, issues, and feature requests are welcome! If you find a SpruceOS platform configuration file that isn't currently targeted by the injection engine, feel free to submit a Pull Request modifying `core/retroachievements.py`.
+
+## 🤝 Credits & Attribution
+
+This project bundles and integrates the excellent [RAOfflineProxy](https://github.com/misantronic/RAOfflineProxy) background service created by [misantronic](https://github.com/misantronic), allowing seamless offline RetroAchievements capabilities on Linux-based handheld operating systems.
 
 ## 📜 License
 

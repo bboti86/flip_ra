@@ -135,9 +135,9 @@ class AuthScreen:
             elif action == input.R_BUMPER:
                 return "SWITCH_TO_SETTINGS"
             elif action == input.UP:
-                self.auth_index = max(0, self.auth_index - 1)
+                self.auth_index = (self.auth_index - 1) % len(self.auth_inputs)
             elif action == input.DOWN:
-                self.auth_index = min(len(self.auth_inputs) - 1, self.auth_index + 1)
+                self.auth_index = (self.auth_index + 1) % len(self.auth_inputs)
             elif action == input.ACCEPT:
                 self.auth_inputs[self.auth_index].active = True
             elif action == input.START:

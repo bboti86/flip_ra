@@ -113,9 +113,15 @@ class StatsScreen:
         elif action == input.R_BUMPER:
             return "SWITCH_TO_AUTH"
         elif action == input.UP:
-            self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
+            if self.scroll_y <= 0:
+                self.scroll_y = self.max_scroll_y
+            else:
+                self.scroll_y = max(0, self.scroll_y - self.SCROLL_STEP)
         elif action == input.DOWN:
-            self.scroll_y = min(self.max_scroll_y, self.scroll_y + self.SCROLL_STEP)
+            if self.scroll_y >= self.max_scroll_y:
+                self.scroll_y = 0
+            else:
+                self.scroll_y = min(self.max_scroll_y, self.scroll_y + self.SCROLL_STEP)
         elif action == input.PAGE_UP:
             self.scroll_y = max(0, self.scroll_y - 300)
         elif action == input.PAGE_DOWN:
@@ -129,9 +135,15 @@ class StatsScreen:
             return
             
         if input.is_pressed(input.UP):
-            self.scroll_y = max(0, self.scroll_y - int(400 * dt))
+            if self.scroll_y <= 0:
+                self.scroll_y = self.max_scroll_y
+            else:
+                self.scroll_y = max(0, self.scroll_y - int(400 * dt))
         elif input.is_pressed(input.DOWN):
-            self.scroll_y = min(self.max_scroll_y, self.scroll_y + int(400 * dt))
+            if self.scroll_y >= self.max_scroll_y:
+                self.scroll_y = 0
+            else:
+                self.scroll_y = min(self.max_scroll_y, self.scroll_y + int(400 * dt))
 
     def _draw_bar(self, x, y, w, h, fill_pct, fill_color, bg_color):
         fill_pct = max(0.0, min(1.0, fill_pct))

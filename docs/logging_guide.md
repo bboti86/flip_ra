@@ -10,6 +10,7 @@ The application uses a centralized logger setup defined in `core/logger.py`. Thi
 - **Destination:** Standard Output (`sys.stdout`)
 - **Formatting:** `[%(levelname)s] %(name)s: %(message)s`
 - **Device Log File:** The output is captured by the main application wrapper (`launch.sh`) and redirected to `/mnt/SDCARD/App/RA_Manager/runtime.log`.
+- **Service Log File:** Output from background daemon services (like the offline proxy) is redirected to `/mnt/SDCARD/App/RA_Manager/service.log`.
 
 ### Log Level Configuration
 The global log level is dynamically configurable.

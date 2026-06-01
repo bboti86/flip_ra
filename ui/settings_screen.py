@@ -4,7 +4,7 @@ import json
 import os
 
 from .components import render_text, render_text_shadow, draw_panel, draw_selector
-from core import input, retroachievements
+from core import input, retroachievements, proxy
 
 class SettingsScreen:
     def __init__(self, renderer, font):
@@ -23,6 +23,7 @@ class SettingsScreen:
             ("Auto Screenshot", "cheevos_auto_screenshot", "bool"),
             ("Lboard Start Msg", "cheevos_visibility_lboard_start", "bool"),
             ("Login Message", "cheevos_visibility_account", "bool"),
+            ("Offline Proxy", "offline_proxy", "proxy_toggle"),
         ]
         
         self.anchor_labels = {
@@ -35,6 +36,7 @@ class SettingsScreen:
         self.index = 0
         self.status_message = ""
         self.status_color = (200, 200, 200)
+        self.proxy_enabled = proxy.get_proxy_state()
 
         # Navigation Repeat Logic
         self.repeat_timers = {}
@@ -88,9 +90,9 @@ class SettingsScreen:
 
     def _navigate(self, action):
         if action == input.UP:
-            self.index = max(0, self.index - 1)
+            self.index = (self.index - 1) % len(self.settings_map)
         elif action == input.DOWN:
-            self.index = min(len(self.settings_map) - 1, self.index + 1)
+            self.index = (self.index + 1) % len(self.settings_map)
 
     def handle_event(self, event):
         action = input.map_event(event)
@@ -109,6 +111,8 @@ class SettingsScreen:
             elif type == "cycle":
                 cur = int(self.prefs[key])
                 self.prefs[key] = str((cur + 1) % 4)
+            elif type == "proxy_toggle":
+                self.proxy_enabled = proxy.toggle_proxy()
         elif action == input.START:
             self.save_config()
             # Push to RetroArch and PPSSPP
@@ -145,7 +149,7 @@ class SettingsScreen:
         draw_panel(self.renderer, 40, 60, 560, 335, bg_color=(20, 20, 30, 230), border_color=(80, 80, 100))
         
         base_y = 70
-        spacing = 40
+        spacing = 35
         
         for i, (label, key, type) in enumerate(self.settings_map):
             y = base_y + i * spacing
@@ -169,6 +173,9 @@ class SettingsScreen:
             elif type == "cycle":
                 val_text = self.anchor_labels.get(val, val)
                 val_color = (100, 200, 255)
+            elif type == "proxy_toggle":
+                val_text = "ENABLED" if self.proxy_enabled else "DISABLED"
+                val_color = (100, 255, 100) if self.proxy_enabled else (255, 100, 100)
                 
             render_text_shadow(self.renderer, self.font, val_text, 360, y + 8, val_color, shadow_offset=1)
             

@@ -35,8 +35,8 @@ def run_local_build():
     os.system("mkdir -p deploy/RA_Manager")
     
     print(f"{BOLD}{BLUE}Copying application files...{RESET}")
-    # Copy code and libs, but skip heavy assets subfolders
-    os.system("cp -r core ui libs deploy/RA_Manager/ 2>/dev/null || true")
+    # Copy code, libs and binaries, but skip heavy assets subfolders
+    os.system("cp -r core ui libs bin deploy/RA_Manager/ 2>/dev/null || true")
     os.system("cp main.py launch.sh settings.json config.json icon.png deploy/RA_Manager/ 2>/dev/null || true")
     
     # Only copy static assets (fonts, etc) but skip the downloaded badge/icon folders
@@ -88,8 +88,8 @@ def deploy():
 
     print(f"{BOLD}{CYAN}4) 🧹 Cleaning code from device (preserving assets and caches)...{RESET}")
     target_folder = f"{REMOTE_APP_DIR}/{FOLDER_NAME}"
-    # Explicitly remove code folders but keep assets/ and .json files
-    stdin, stdout, stderr = ssh.exec_command(f"rm -rf {target_folder}/core {target_folder}/ui {target_folder}/libs {target_folder}/main.py")
+    # Explicitly remove code and binary folders but keep assets/ and .json files
+    stdin, stdout, stderr = ssh.exec_command(f"rm -rf {target_folder}/core {target_folder}/ui {target_folder}/libs {target_folder}/bin {target_folder}/main.py")
     stdout.channel.recv_exit_status()
     
     print(f"{BOLD}{CYAN}5) 🚀 Pushing new application files via secure copy...{RESET}")
