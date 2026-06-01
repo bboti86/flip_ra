@@ -23,9 +23,13 @@ jobs:
           # Only copy application-critical directories
           cp -r core ui RA_Manager/ 2>/dev/null || true
           
-          # Optionally copy libs/assets only if they exist
+          # Optionally copy libs/assets/bin only if they exist
           [ -d libs ] && cp -r libs RA_Manager/ || true
           [ -d assets ] && cp -r assets RA_Manager/ || true
+          [ -d bin ] && cp -r bin RA_Manager/ || true
+          
+          # Include readme for first-time setup
+          cp docs/RELEASE_README.txt RA_Manager/readme.txt 2>/dev/null || true
           
           # Copy only the specific top-level files required for SpruceOS
           cp main.py launch.sh config.json icon.png RA_Manager/ 2>/dev/null || true
